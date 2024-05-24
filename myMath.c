@@ -8,17 +8,13 @@ int increase_discharge(int exp) {
 }
 
 int take_len_of_int(int num, int now) {
-  // if (now == 2 || now < 2) printf("now: %d\n", now);
-
   if (num < increase_discharge(now) && num >= increase_discharge(now - 1))
     return now - 1;
 
-  if (num > increase_discharge(now))
-    return take_len_of_int(num, now += now / 2);
-  if (num < increase_discharge(now))
-    return take_len_of_int(num, now -= now / 2);
+  if (num > increase_discharge(now)) return take_len_of_int(num, now + 1);
+  if (num < increase_discharge(now)) return take_len_of_int(num, now - 1);
 
-  return now;
+  return now - 1;
 }
 
 int getFirstDigit(int number) {
@@ -30,35 +26,44 @@ int getFirstDigit(int number) {
 
 void add_char(char **s, char ch, int *count);
 
-int fractional_to_integer(char **s, int *count, float number, int tmp_count) {
-  // printf("number: %f, tmp_count: %d\n", number, tmp_count);
-  if ((int)number == 0) number++;
+int digit_down(int *num, int *tpm_len, int *len, int E, int *count, char **s,
+               int should_point) {
+  int del = increase_discharge(take_len_of_int(*num, 5));
+  if (del == 0) del = 1;
 
-  while ((int)number != number) number *= 10;
-
-  int tmp = (int)number;
-  int tpm_len = take_len_of_int(tmp, 5);
-  // printf("tmp: %d\n", tmp);
-
-  for (; tmp_count > 0; tmp_count--) {
-    int del = increase_discharge(take_len_of_int(tmp, 5));
-    if (del == 0) del = 1;
-    tmp -= del * getFirstDigit(tmp);
-    // printf("tmp: %d\n", tmp);
-
-    int now_len = take_len_of_int(tmp, 5);
-    int delta = tpm_len - now_len;
-    // printf("delta: %d\n", delta);
-
-    if (delta > 1) {
-      tmp_count -= delta - 1;
-    } else
-      tpm_len = now_len;
-    // printf("tmp_count: %d\n", tmp_count);
-
-    if (tmp_count - 1 <= 0 && delta > 1)
-      for (int i = delta - 1; i > 0; i--) add_char(s, '0', count);
-    // printf("111\n");
+  if (E) {
+    char first_digit = getFirstDigit(*num);
+    add_char(s, first_digit + '0', count);
+    if (should_point) add_char(s, '.', count);
   }
-  return tmp;
+
+  *num -= del * getFirstDigit(*num);
+  int now_len = take_len_of_int(*num, 5);
+  int delta = (*tpm_len) - now_len;
+  if (delta > 1) {
+    *len -= delta - 1;
+  } else
+    *tpm_len = now_len;
+
+  return delta;
+}
+
+int take_zero_count(char **s, int *count, double *float_ptr, int is_long) {
+  if (*float_ptr < 0) {
+    *float_ptr = 0 - *float_ptr;
+    add_char(s, '-', count);
+  }
+  if (*float_ptr == 0.) return 6;
+  int count_fractional_zero = 0;
+  while (1) {
+    double one = 0.1;
+    for (int i = 0; i < count_fractional_zero; i++) one /= 10.;
+    if (*float_ptr < one)
+      count_fractional_zero++;
+    else
+      break;
+  }
+
+  if (count_fractional_zero > 6 && !is_long) count_fractional_zero = 6;
+  return count_fractional_zero;
 }
