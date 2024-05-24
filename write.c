@@ -39,47 +39,11 @@ int write_char(char **s, va_list *args, int *count) {
   return 0;
 }
 
-// read_float() {
-//   if (count_fractional_zero > 3) {
-//     for (int i = 0; i <= count_fractional_zero; i++) {
-//       if (i == 1) add_char(s, '.', count);
-//       add_char(s, '0', count);
-//     }
-//     if (count_fractional_zero == 4) {
-//       float_ptr *= 10000;
-//       gcvt(float_ptr, 2, buffer);
-//       add_char(s, buffer[2], count);
-//       add_char(s, buffer[3], count);
-//     }
-//     if (count_fractional_zero == 5) {
-//       float_ptr *= 100000;
-//       gcvt(float_ptr, 1, buffer);
-//       add_char(s, buffer[2], count);
-//     }
-
-//   } else {
-//     int len_int = take_len_of_int((int)float_ptr, 5);
-//     if (getFirstDigit((int)float_ptr != 0)) len_int++;
-//     gcvt(float_ptr, 6 + len_int - count_fractional_zero, buffer);
-
-//     int i = 0, count_fractional = 0, wasnt_point = 1;
-//     for (; buffer[i] != '\0' && buffer[i] != '\n'; i++) {
-//       if (buffer[i] == '.') wasnt_point = 0;
-//       add_char(s, buffer[i], count);
-//       if (!wasnt_point && buffer[i] != '.') count_fractional++;
-//     }
-//     if (wasnt_point) add_char(s, '.', count);
-//     for (; count_fractional < 6; count_fractional++) add_char(s, '0', count);
-//   }
-// }
-
 void write_float(char **s, va_list *args, int *count) {
   double float_ptr = va_arg(*args, double);
 
   int count_fractional_zero = take_zero_count(s, count, &float_ptr, 0);
   char buffer[25];
-
-  // char buffer = read_float();
 
   if (count_fractional_zero > 3) {
     for (int i = 0; i <= count_fractional_zero; i++) {
@@ -136,28 +100,18 @@ char *take_e_part(int e, char E) {
 }
 
 char rounding(char num, char next_num) {
-  // printf("rounding: %c, %c\n", num, next_num);
   int num1 = 0;
   if (num != 'l') num1 = num - '0';
   int num2 = next_num - '0';
 
   if (num2 > 5) num1++;
 
-  // printf("rounding: %c\n", num1 + '0');
   if (num1 == 10) return 'l';
   return num1 + '0';
 }
 
 void rounding_all_fractional(char *float_arr, int *count_zero,
                              int *real_count_zero) {
-  // printf("float_arr: %s\n", float_arr);
-  // printf("sizeof(float_arr): %d\n", (int)strlen(float_arr));
-  // printf("float_arr[%d]: %c\n", (int)strlen(float_arr) - 1,
-  //        float_arr[strlen(float_arr) - 1]);
-
-  // printf("(int)strlen(buffer) - 1: %d\n", (int)strlen(float_arr) - 1);
-  // printf("6 + tmp_count_zero: %d\n", 6 + *count_zero);
-
   int number_boundary = 5;
   if (float_arr[0] == '0') number_boundary += *count_zero;
   char now_char = '0';
@@ -168,35 +122,28 @@ void rounding_all_fractional(char *float_arr, int *count_zero,
 
     if (now_char != 'l') {
       float_arr[i] = now_char;
-      // printf("now_char != 'l'; float_arr[%d]: %c\n", i, float_arr[i]);
     } else {
       float_arr[i] = '0';
-      // printf("l case:   ");
       float_arr[i - 1] = rounding(float_arr[i - 1], '9');
-      // printf("float_arr[%d]: %c\n", i, float_arr[i]);
-      // printf("float_arr[%d]: %c\n", i - 1, float_arr[i - 1]);
       i--;
     }
   }
   i++;
   int tmp_first_char = float_arr[0];
-  // printf("float_arr[%d]: %c\n", i, float_arr[i]);
   while (i > 0 && float_arr[i] == 'l') {
     float_arr[i] = '0';
     float_arr[i - 1] = rounding(float_arr[i - 1], '9');
     i--;
   }
   if ((tmp_first_char == '9' || tmp_first_char == '0') &&
-      tmp_first_char != float_arr[0]) {
-    // *count_zero -= 1;
+      tmp_first_char != float_arr[0])
     *real_count_zero -= 1;
-  }
+
   if (float_arr[0] == 'l') {
     float_arr[0] = '0';
     memmove(float_arr + 1, float_arr, strlen(float_arr) - 1);
     float_arr[0] = '1';
   }
-  // for (; i > 0; i--) printf("float_arr[%d]: %c\n", i, float_arr[i]);
 }
 
 void delate_point(char *arr) {
@@ -216,7 +163,6 @@ void delate_point(char *arr) {
 
 void write_ready_scientific_num(char **s, int *count, char *buffer,
                                 int count_zero, double float_ptr, char E) {
-  // printf("count_zero: %d\n", count_zero);
   int tmp_count_zero = count_zero;
   if ((int)strlen(buffer) - 1 == 8 && 6 + count_zero >= 11) tmp_count_zero = 0;
 
@@ -234,7 +180,6 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
     add_char(s, '.', count);
     start++;
   }
-  // printf("start: %d\n", start);
   for (; start < 7; start++) add_char(s, '0', count);
 
   int e = 0;
@@ -243,15 +188,7 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
     if (getFirstDigit((int)float_ptr) == 9 && buffer[0] == '1') e = 1;
   } else
     e = 0 - count_zero;
-
-  // printf("(int)float_ptr: %d\n", (int)float_ptr);
-  // printf("buffer: %s\n", buffer);
-
-  // printf("E: %d\n", e);
-  // printf("need_zero: %d\n", need_zero);
-
   char *e_buffer = take_e_part(e, E);
-  // printf("e_buffer: %s\n", e_buffer);
 
   for (int i = 0; e_buffer[i] != '\0'; i++) add_char(s, e_buffer[i], count);
 }
@@ -265,17 +202,12 @@ int write_scientific_notation(char **s, va_list *args, int *count, char E) {
   int count_zero = take_zero_count(s, count, &float_ptr, 1);
   if ((int)float_ptr == 0) count_zero++;
 
-  // printf("count_zero after: %d\n", count_zero);
-  // printf("buffer: %s\n", buffer);
   delate_point(buffer);
   int tmp_count_zero = count_zero;
-  // printf("(int)strlen(buffer) - 1: %d\n", (int)strlen(buffer) - 1);
-  // printf("6 + tmp_count_zero: %d\n", 6 + count_zero);
 
   if ((int)strlen(buffer) - 1 == 8 && 6 + count_zero >= 11) tmp_count_zero = 0;
   if ((int)strlen(buffer) - 1 > 6 + tmp_count_zero)
     rounding_all_fractional(buffer, &tmp_count_zero, &count_zero);
-  // printf("buffer after: %s\n", buffer);
 
   write_ready_scientific_num(s, count, buffer, count_zero, float_ptr, E);
 
