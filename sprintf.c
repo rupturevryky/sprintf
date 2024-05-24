@@ -23,7 +23,7 @@ int write(const char **f, char **s, va_list *args, int *count) {
   return 0;
 }
 
-int s21_sprintf(char *str, const char *format, ...) {
+int my_sprintf(char *str, const char *format, ...) {
   va_list now_arg;
   va_start(now_arg, format);
   char *s = str;
@@ -65,7 +65,7 @@ int main() {
   printf("data: %d, %c, %f, %s, %f\n", num, ch, fl, str, e);
   printf("format: %s\n", format);
 
-  int co = s21_sprintf(input, format, num, ch, fl, str, e);
+  int co = my_sprintf(input, format, num, ch, fl, str, e);
   printf("s21_    input: %s\n", input);
   printf("Кол-во: %d\n", co);
 
