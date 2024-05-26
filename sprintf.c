@@ -13,6 +13,9 @@ int write(const char **f, char **s, va_list *args, int *count) {
   } else if (**f == 'f') {
     write_float(s, args, count);
     *f += 1;
+  } else if (**f == 'g' || **f == 'G') {
+    write_shortest_representation(s, args, count);
+    *f += 1;
   } else if (**f == 's') {
     write_string(s, args, count);
     *f += 1;
@@ -23,7 +26,7 @@ int write(const char **f, char **s, va_list *args, int *count) {
   return 0;
 }
 
-int my_sprintf(char *str, const char *format, ...) {
+int s21_sprintf(char *str, const char *format, ...) {
   va_list now_arg;
   va_start(now_arg, format);
   char *s = str;
@@ -41,7 +44,6 @@ int my_sprintf(char *str, const char *format, ...) {
       add_char(&s, *f, &count);
       f++;
     }
-    // printf("str: %s\n", str);
   }
   *s = '\0';
   va_end(now_arg);
@@ -51,25 +53,36 @@ int my_sprintf(char *str, const char *format, ...) {
 int main() {
   int num = -1;
   float fl = 1.012341;
-  double e = 0.0000000000000123456789123456789;
+  double e = 99912355.122349998;
+  // double e = 0.00012;
+  // double e = 0.00000000000000123456789123456789;
   // double e = 9.99999998;
+  // double e = 99.999999999999;
   // double e = 0.99999998;
   // double e = 0.00000123456789;
+  // double e = 0.000000000000123456989123456789;
+  double g = 0.00000593458789;
+  // double g = 0.00000500000093458789;
+  // double g = 0.;
+  // double g = 99.99999998;
+  // double g = 0.00012;
+  // double g = 9912345.122349998;
 
   char ch = 'A';
   char str[] = "[str]";
 
   char input[100];
-  const char *format = "%%,d-%d; c-%c; f-%f; s-%s; e-%e";
+  const char *format = "%%,d-%d; c-%c; f-%f; s-%s; e-%e; g-%g";
 
-  printf("data: %d, %c, %f, %s, %f\n", num, ch, fl, str, e);
-  printf("format: %s\n", format);
+  // printf("data: %d, %c, %f, %s, %f, %f\n", num, ch, fl, str, e, e);
+  // printf("format: %s\n", format);
 
-  int co = my_sprintf(input, format, num, ch, fl, str, e);
+  int co = s21_sprintf(input, format, num, ch, fl, str, e, g);
   printf("s21_    input: %s\n", input);
   printf("Кол-во: %d\n", co);
 
-  co = sprintf(input, format, num, ch, fl, str, e);
+  co = sprintf(input, format, num, ch, fl, str, e, g);
+
   printf("sprintf input: %s\n", input);
   printf("Кол-во: %d\n", co);
 

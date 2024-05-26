@@ -14,7 +14,7 @@ int take_len_of_int(int num, int now) {
   if (num > increase_discharge(now)) return take_len_of_int(num, now + 1);
   if (num < increase_discharge(now)) return take_len_of_int(num, now - 1);
 
-  return now - 1;
+  return now;
 }
 
 int getFirstDigit(int number) {
@@ -23,8 +23,6 @@ int getFirstDigit(int number) {
   }
   return number;
 }
-
-void add_char(char **s, char ch, int *count);
 
 int digit_down(int *num, int *tpm_len, int *len, int E, int *count, char **s,
                int should_point) {
@@ -66,4 +64,20 @@ int take_zero_count(char **s, int *count, double *float_ptr, int is_long) {
 
   if (count_fractional_zero > 6 && !is_long) count_fractional_zero = 6;
   return count_fractional_zero;
+}
+
+int zero_count_for_scientific(char **s, int *count, double *float_ptr,
+                              char *buffer, int *tmp_count_zero) {
+  int count_zero = take_zero_count(s, count, float_ptr, 1);
+  if ((int)*float_ptr == 0) count_zero++;
+
+  delate_point(buffer);
+
+  *tmp_count_zero = count_zero;
+  int str_len = (int)strlen(buffer) - 1;
+
+  if (str_len == 8 && 6 + count_zero >= 11) *tmp_count_zero = 0;
+  while (*tmp_count_zero + 6 >= str_len) *tmp_count_zero -= 6;
+
+  return count_zero;
 }

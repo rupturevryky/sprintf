@@ -78,7 +78,15 @@ void write_float(char **s, va_list *args, int *count) {
   }
 }
 
-char *take_e_part(int e, char E) {
+char *take_e_part(char E, int num, int was_a_discharge_upgrade,
+                  int count_zero) {
+  int e = 0;
+  if (num > 0) {
+    e = take_len_of_int(num, 5);
+    if (was_a_discharge_upgrade) e += 1;
+  } else
+    e = 0 - count_zero;
+
   static char e_buffer[4];
   e_buffer[0] = E;
   if (e >= 0)
@@ -104,18 +112,20 @@ char rounding(char num, char next_num) {
   if (num != 'l') num1 = num - '0';
   int num2 = next_num - '0';
 
-  if (num2 > 5) num1++;
+  if (num2 >= 5) num1++;
 
   if (num1 == 10) return 'l';
   return num1 + '0';
 }
 
-void rounding_all_fractional(char *float_arr, int *count_zero,
-                             int *real_count_zero) {
-  int number_boundary = 5;
-  if (float_arr[0] == '0') number_boundary += *count_zero;
+int rounding_all_fractional(char *float_arr, int count_zero,
+                            int *real_count_zero, int len) {
+  int number_boundary = len - 1;
+  if (float_arr[0] == '0' && count_zero > 1) number_boundary += count_zero - 1;
+
   char now_char = '0';
   int i = strlen(float_arr) - 2;
+
   for (; i > number_boundary; i--) {
     now_char = rounding(float_arr[i], float_arr[i + 1]);
     if (float_arr[i + 1] == 'l') float_arr[i + 1] = '0';
@@ -143,7 +153,9 @@ void rounding_all_fractional(char *float_arr, int *count_zero,
     float_arr[0] = '0';
     memmove(float_arr + 1, float_arr, strlen(float_arr) - 1);
     float_arr[0] = '1';
+    return 1;
   }
+  return 0;
 }
 
 void delate_point(char *arr) {
@@ -158,16 +170,23 @@ void delate_point(char *arr) {
       arr[i + 1] = '.';
     }
   }
-  arr[i - 1] = '\0';
+  for (; i > 0; i--)
+    if (arr[i] == '.') {
+      arr[i] = '\0';
+      break;
+    }
 }
 
 void write_ready_scientific_num(char **s, int *count, char *buffer,
-                                int count_zero, double float_ptr, char E) {
+                                int count_zero, double float_ptr, char E,
+                                int len) {
   int tmp_count_zero = count_zero;
   if ((int)strlen(buffer) - 1 == 8 && 6 + count_zero >= 11) tmp_count_zero = 0;
 
   int number_boundary = 7;
+  if (len) number_boundary = len + 1;
   if (buffer[0] == '0') number_boundary += tmp_count_zero;
+
   int start = 0;
   for (int i = 0; buffer[i] != '\0' && i < number_boundary; i++) {
     if (buffer[i] == '0' && !start) continue;
@@ -180,39 +199,73 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
     add_char(s, '.', count);
     start++;
   }
-  for (; start < 7; start++) add_char(s, '0', count);
+  int was_a_discharge_upgrade = 0;
+  if (buffer[0] == '1' && getFirstDigit((int)float_ptr) == 9) {
+    was_a_discharge_upgrade = 1;
+    tmp_count_zero++;
+  }
+  for (; start < number_boundary - tmp_count_zero; start++)
+    add_char(s, '0', count);
 
-  int e = 0;
-  if ((int)float_ptr > 0) {
-    e = take_len_of_int((int)float_ptr, 5);
-    if (getFirstDigit((int)float_ptr) == 9 && buffer[0] == '1') e = 1;
-  } else
-    e = 0 - count_zero;
-  char *e_buffer = take_e_part(e, E);
+  char *e_buffer =
+      take_e_part(E, (int)float_ptr, was_a_discharge_upgrade, count_zero);
 
   for (int i = 0; e_buffer[i] != '\0'; i++) add_char(s, e_buffer[i], count);
 }
 
 int write_scientific_notation(char **s, va_list *args, int *count, char E) {
   double float_ptr = va_arg(*args, double);
+  char buffer[17];
+  gcvt(float_ptr, 17, buffer);
+
+  int tmp_count_zero = 0;
+  int count_zero =
+      zero_count_for_scientific(s, count, &float_ptr, buffer, &tmp_count_zero);
+
+  rounding_all_fractional(buffer, tmp_count_zero, &count_zero, 6);
+  write_ready_scientific_num(s, count, buffer, count_zero, float_ptr, E, 6);
+
+  return 0;
+}
+
+void clear_ending_zeros(char *float_string, int len) {
+  for (int i = strlen(float_string) - 1; i > len; i--) {
+    if (float_string[i] == '0')
+      float_string[i] = '\0';
+    else
+      break;
+  }
+}
+
+void write_shortest_representation(char **s, va_list *args, int *count) {
+  int len = 5;
+  double float_ptr = va_arg(*args, double);
 
   char buffer[17];
   gcvt(float_ptr, 17, buffer);
 
-  int count_zero = take_zero_count(s, count, &float_ptr, 1);
-  if ((int)float_ptr == 0) count_zero++;
+  int tmp_count_zero = 0;
+  int count_zero =
+      zero_count_for_scientific(s, count, &float_ptr, buffer, &tmp_count_zero);
 
-  delate_point(buffer);
-  int tmp_count_zero = count_zero;
+  int was_greade =
+      rounding_all_fractional(buffer, tmp_count_zero, &count_zero, len);
+  if (float_ptr == 0.) buffer[0] = '0';
+  buffer[len + 1] = '\0';
 
-  if ((int)strlen(buffer) - 1 == 8 && 6 + count_zero >= 11) tmp_count_zero = 0;
-  if ((int)strlen(buffer) - 1 > 6 + tmp_count_zero)
-    rounding_all_fractional(buffer, &tmp_count_zero, &count_zero);
+  int len_of_int = take_len_of_int((int)float_ptr, 5) + was_greade;
+  clear_ending_zeros(buffer, len_of_int);
 
-  write_ready_scientific_num(s, count, buffer, count_zero, float_ptr, E);
-
-  return 0;
-}
+  if ((float_ptr < 0.0001 && float_ptr != 0.) || len_of_int >= 6) {
+    write_ready_scientific_num(s, count, buffer, count_zero, float_ptr, 'e',
+                               len);
+  } else {
+    for (int i = 0; i < 10 && buffer[i] != '\0'; i++) {
+      if (i == len_of_int + 1) add_char(s, '.', count);
+      add_char(s, buffer[i], count);
+    }
+  }
+};
 
 int write_string(char **s, va_list *args, int *count) {
   char *str_param = va_arg(*args, char *);
