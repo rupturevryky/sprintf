@@ -6,6 +6,11 @@ void add_char(char **s, char ch, int *count) {
   *s += 1;
   *count += 1;
 }
+
+void add_string(char **s, char *str, int *count) {
+  for (int i = 0; str[i] != '\0'; i++) add_char(s, str[i], count);
+}
+
 void add_int(char **s, int int_ptr, int *count) {
   int first_digit = getFirstDigit(int_ptr);
   for (int i = take_len_of_int(int_ptr, 5); i >= 0; i--) {
@@ -107,57 +112,6 @@ char *take_e_part(char E, int num, int was_a_discharge_upgrade,
   return e_buffer;
 }
 
-char rounding(char num, char next_num) {
-  int num1 = 0;
-  if (num != 'l') num1 = num - '0';
-  int num2 = next_num - '0';
-
-  if (num2 >= 5) num1++;
-
-  if (num1 == 10) return 'l';
-  return num1 + '0';
-}
-
-int rounding_all_fractional(char *float_arr, int count_zero,
-                            int *real_count_zero, int len) {
-  int number_boundary = len - 1;
-  if (float_arr[0] == '0' && count_zero > 1) number_boundary += count_zero - 1;
-
-  char now_char = '0';
-  int i = strlen(float_arr) - 2;
-
-  for (; i > number_boundary; i--) {
-    now_char = rounding(float_arr[i], float_arr[i + 1]);
-    if (float_arr[i + 1] == 'l') float_arr[i + 1] = '0';
-
-    if (now_char != 'l') {
-      float_arr[i] = now_char;
-    } else {
-      float_arr[i] = '0';
-      float_arr[i - 1] = rounding(float_arr[i - 1], '9');
-      i--;
-    }
-  }
-  i++;
-  int tmp_first_char = float_arr[0];
-  while (i > 0 && float_arr[i] == 'l') {
-    float_arr[i] = '0';
-    float_arr[i - 1] = rounding(float_arr[i - 1], '9');
-    i--;
-  }
-  if ((tmp_first_char == '9' || tmp_first_char == '0') &&
-      tmp_first_char != float_arr[0])
-    *real_count_zero -= 1;
-
-  if (float_arr[0] == 'l') {
-    float_arr[0] = '0';
-    memmove(float_arr + 1, float_arr, strlen(float_arr) - 1);
-    float_arr[0] = '1';
-    return 1;
-  }
-  return 0;
-}
-
 void delate_point(char *arr) {
   int i = 0;
   for (; arr[i] != '\0' && arr[i] != '\n'; i++) {
@@ -210,7 +164,7 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
   char *e_buffer =
       take_e_part(E, (int)float_ptr, was_a_discharge_upgrade, count_zero);
 
-  for (int i = 0; e_buffer[i] != '\0'; i++) add_char(s, e_buffer[i], count);
+  add_string(s, e_buffer, count);
 }
 
 int write_scientific_notation(char **s, va_list *args, int *count, char E) {
@@ -269,8 +223,46 @@ void write_shortest_representation(char **s, va_list *args, int *count) {
 
 int write_string(char **s, va_list *args, int *count) {
   char *str_param = va_arg(*args, char *);
-  for (int i = 0; str_param[i] != '\0'; i++) {
-    add_char(s, str_param[i], count);
+  add_string(s, str_param, count);
+  return 0;
+}
+
+int write_unsigned_octal(char **s, va_list *args, int *count) {
+  unsigned long decimalNumber = va_arg(*args, unsigned long);
+
+  if ((long long int)decimalNumber < 0) {
+    fprintf(stderr,
+            "\033[31;1merror:\033[0m ‘%%o’ directive writing 11 bytes into a "
+            "region of size 10\n");
+    return 1;
   }
+  if (decimalNumber == 0) {
+    add_char(s, '0', count);
+    return 0;
+  }
+
+  char octal[100];
+  int i = 0;
+  while (decimalNumber != 0) {
+    octal[i] = decimalNumber % 8 + '0';
+    decimalNumber = decimalNumber / 8;
+    i++;
+  }
+
+  int length = strlen(octal);
+  int start = 0;
+  int end = length - 1;
+
+  while (start < end) {
+    char temp = octal[start];
+    octal[start] = octal[end];
+    octal[end] = temp;
+
+    start++;
+    end--;
+  }
+
+  add_string(s, octal, count);
+
   return 0;
 }

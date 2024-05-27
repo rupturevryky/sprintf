@@ -19,6 +19,10 @@ int write(const char **f, char **s, va_list *args, int *count) {
   } else if (**f == 's') {
     write_string(s, args, count);
     *f += 1;
+  } else if (**f == 'o') {
+    if (write_unsigned_octal(s, args, count) != 0) exit(1);
+
+    *f += 1;
   } else if (**f == '%') {
     add_char(s, **f, count);
     *f += 1;
@@ -67,21 +71,25 @@ int main() {
   // double g = 99.99999998;
   // double g = 0.00012;
   // double g = 9912345.122349998;
+  // long int octal = 2247483648;
+  // long int octal = 1.5;
+  long int octal = -2247483648;
+  // long int octal = -1;
 
   char ch = 'A';
   char str[] = "[str]";
 
   char input[100];
-  const char *format = "%%,d-%d; c-%c; f-%f; s-%s; e-%e; g-%g";
+  const char *format = "%%,d-%d; c-%c; f-%f; s-%s; e-%e; g-%g; o-%o";
 
   // printf("data: %d, %c, %f, %s, %f, %f\n", num, ch, fl, str, e, e);
   // printf("format: %s\n", format);
 
-  int co = s21_sprintf(input, format, num, ch, fl, str, e, g);
+  int co = s21_sprintf(input, format, num, ch, fl, str, e, g, octal);
   printf("s21_    input: %s\n", input);
   printf("Кол-во: %d\n", co);
 
-  co = sprintf(input, format, num, ch, fl, str, e, g);
+  co = sprintf(input, format, num, ch, fl, str, e, g, octal);
 
   printf("sprintf input: %s\n", input);
   printf("Кол-во: %d\n", co);
