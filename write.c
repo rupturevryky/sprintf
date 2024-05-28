@@ -172,8 +172,6 @@ int write_unsigned_int(char **s, va_list *args, int *count) {
             "argument 3 has other type\n");
     return 1;
   }
-
   add_int(s, int_ptr, count);
-
   return 0;
 }
