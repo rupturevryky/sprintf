@@ -8,6 +8,8 @@ int increase_discharge(int exp) {
 }
 
 int take_len_of_int(int num, int now) {
+  if (num > 1000000000) return 9;
+
   if (num < increase_discharge(now) && num >= increase_discharge(now - 1))
     return now - 1;
 
