@@ -114,3 +114,18 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
 
   add_string(s, e_buffer, count);
 }
+
+void reverse_arr(char *arr) {
+  int length = strlen(arr);
+  int start = 0;
+  int end = length - 1;
+
+  while (start < end) {
+    char temp = arr[start];
+    arr[start] = arr[end];
+    arr[end] = temp;
+
+    start++;
+    end--;
+  }
+}

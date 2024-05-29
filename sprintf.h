@@ -14,6 +14,7 @@
 
 void add_char(char **s, char ch, int *count);
 void delate_point(char *arr);
+void reverse_arr(char *arr);
 
 #include "write.c"
 

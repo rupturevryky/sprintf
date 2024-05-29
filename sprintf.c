@@ -25,6 +25,12 @@ int write(const char **f, char **s, va_list *args, int *count) {
   } else if (**f == 'u') {
     if (write_unsigned_int(s, args, count) != 0) return 1;
     *f += 1;
+  } else if (**f == 'x' || **f == 'X') {
+    if (write_unsigned_hexadecimal_integer(s, args, count, **f) != 0) return 1;
+    *f += 1;
+  } else if (**f == 'n') {
+    write_count(args, count);
+    *f += 1;
   } else if (**f == '%') {
     add_char(s, **f, count);
     *f += 1;
@@ -38,13 +44,14 @@ int s21_sprintf(char *str, const char *format, ...) {
   char *s = str;
   const char *f = format;
   int count = 0;
+  int res = 0;
 
   while (*f != '\0') {
     if (*f == '%') {
       f += 1;
       if (write(&f, &s, &now_arg, &count) != 0) {
         va_end(now_arg);
-        exit(1);
+        res = 1;
       }
     } else {
       add_char(&s, *f, &count);
@@ -53,6 +60,7 @@ int s21_sprintf(char *str, const char *format, ...) {
   }
   *s = '\0';
   va_end(now_arg);
+  if (res) exit(1);
   return count;
 }
 
@@ -76,23 +84,30 @@ int main() {
   long int octal = 2247483648;
   // long int octal = -1;
   unsigned int u = 14;
+  unsigned int x = 12345;
+  int s21_count = 0;
+  int count = 0;
 
   char ch = 'A';
   char str[] = "[str]";
 
   char input[150];
-  const char *format = "%%,d-%d; c-%c; f-%f; s-%s; e-%e; g-%g; o-%o; u-%u";
+  const char *format =
+      "%%,d-%d; c-%c; f-%f; s-%s; e-%e; g-%g; o-%o; u-%u; x-%x; X-%X; n-%n;";
 
   // printf("data: %d, %c, %f, %s, %f, %f\n", num, ch, fl, str, e, e);
   // printf("format: %s\n", format);
 
-  int co = s21_sprintf(input, format, num, ch, fl, str, e, g, octal, u);
+  int co = s21_sprintf(input, format, num, ch, fl, str, e, g, octal, u, x, x,
+                       &s21_count);
   printf("s21_    input: %s\n", input);
+  printf("s21_count: %d\n", s21_count);
   printf("Кол-во: %d\n", co);
 
-  co = sprintf(input, format, num, ch, fl, str, e, g, octal, u);
+  co = sprintf(input, format, num, ch, fl, str, e, g, octal, u, x, x, &count);
 
   printf("sprintf input: %s\n", input);
+  printf("count: %d\n", count);
   printf("Кол-во: %d\n", co);
 
   return 0;

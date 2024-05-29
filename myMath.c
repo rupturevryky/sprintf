@@ -134,3 +134,36 @@ int rounding_all_fractional(char *float_arr, int count_zero,
   }
   return 0;
 }
+
+char *decimal_to_hex(unsigned long number, char mode) {
+  if (number == 0) {
+    printf("0");
+    return "0";
+  }
+
+  if (mode == 'x')
+    mode = 'a';
+  else
+    mode = 'A';
+
+  unsigned long remainder;
+  char *hex = (char *)malloc(50 * sizeof(char));
+
+  int i = 0;
+  while (number != 0) {
+    remainder = number % 16;
+
+    if (remainder < 10)
+      hex[i] = remainder + '0';
+    else
+      hex[i] = remainder - 10 + mode;
+
+    number /= 16;
+    i++;
+  }
+  hex[i] = '\0';
+
+  reverse_arr(hex);
+
+  return hex;
+}

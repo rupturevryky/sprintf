@@ -145,18 +145,7 @@ int write_unsigned_octal(char **s, va_list *args, int *count) {
   }
   octal[i] = '\0';
 
-  int length = strlen(octal);
-  int start = 0;
-  int end = length - 1;
-
-  while (start < end) {
-    char temp = octal[start];
-    octal[start] = octal[end];
-    octal[end] = temp;
-
-    start++;
-    end--;
-  }
+  reverse_arr(octal);
   add_string(s, octal, count);
 
   return 0;
@@ -172,6 +161,31 @@ int write_unsigned_int(char **s, va_list *args, int *count) {
             "argument 3 has other type\n");
     return 1;
   }
+
   add_int(s, int_ptr, count);
+
   return 0;
+}
+
+int write_unsigned_hexadecimal_integer(char **s, va_list *args, int *count,
+                                       char mode) {
+  unsigned long num = va_arg(*args, unsigned long);
+  if (num > 2147483647) {
+    fprintf(stderr,
+            "\033[31;1merror:\033[0m format ‘%%x’ expects argument of type "
+            "‘unsigned int’, but argument 3 has type ‘long int’ \n");
+    return 1;
+  }
+  char *buffer = decimal_to_hex(num, mode);
+
+  add_string(s, buffer, count);
+
+  free(buffer);
+
+  return 0;
+}
+
+void write_count(va_list *args, int *count) {
+  int *num = va_arg(*args, int *);
+  *num = *count;
 }
