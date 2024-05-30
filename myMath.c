@@ -140,11 +140,7 @@ char *decimal_to_hex(unsigned long number, char mode) {
     printf("0");
     return "0";
   }
-
-  if (mode == 'x')
-    mode = 'a';
-  else
-    mode = 'A';
+  mode = (mode == 'x') ? 'a' : 'A';
 
   unsigned long remainder;
   char *hex = (char *)malloc(50 * sizeof(char));
@@ -152,14 +148,8 @@ char *decimal_to_hex(unsigned long number, char mode) {
   int i = 0;
   while (number != 0) {
     remainder = number % 16;
-
-    if (remainder < 10)
-      hex[i] = remainder + '0';
-    else
-      hex[i] = remainder - 10 + mode;
-
+    hex[i++] = (remainder < 10) ? remainder + '0' : remainder - 10 + mode;
     number /= 16;
-    i++;
   }
   hex[i] = '\0';
 

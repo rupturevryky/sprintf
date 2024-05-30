@@ -1,4 +1,3 @@
-// #include "write_dependencies.h"
 void add_char(char **s, char ch, int *count) {
   **s = ch;
   *s += 1;
@@ -61,10 +60,9 @@ char *take_e_part(char E, int num, int was_a_discharge_upgrade,
 
   static char e_buffer[4];
   e_buffer[0] = E;
-  if (e >= 0)
-    e_buffer[1] = '+';
-  else
-    e_buffer[1] = '-';
+
+  e_buffer[1] = (e >= 0) ? '+' : '-';
+
   if (e < 0) e = 0 - e;
   if (e < 10) {
     e_buffer[2] = '0';
@@ -85,8 +83,7 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
   int tmp_count_zero = count_zero;
   if ((int)strlen(buffer) - 1 == 8 && 6 + count_zero >= 11) tmp_count_zero = 0;
 
-  int number_boundary = 7;
-  if (len) number_boundary = len + 1;
+  int number_boundary = (len) ? len + 1 : 7;
   if (buffer[0] == '0') number_boundary += tmp_count_zero;
 
   int start = 0;

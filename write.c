@@ -185,6 +185,25 @@ int write_unsigned_hexadecimal_integer(char **s, va_list *args, int *count,
   return 0;
 }
 
+void write_ptr_adress(char **s, va_list *args, int *count) {
+  void *ptr = va_arg(*args, void *);
+  unsigned long long address = (unsigned long long)ptr;
+  int j = 0;
+  unsigned long long temp;
+  char buffer[15];
+  do {
+    temp = address % 16;
+    buffer[j++] = (temp < 10) ? (temp + '0') : (temp - 10 + 'a');
+    address /= 16;
+  } while (address != 0);
+  buffer[j++] = 'x';
+  buffer[j++] = '0';
+  buffer[j] = '\0';
+  reverse_arr(buffer);
+
+  add_string(s, buffer, count);
+}
+
 void write_count(va_list *args, int *count) {
   int *num = va_arg(*args, int *);
   *num = *count;

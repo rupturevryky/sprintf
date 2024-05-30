@@ -28,6 +28,9 @@ int write(const char **f, char **s, va_list *args, int *count) {
   } else if (**f == 'x' || **f == 'X') {
     if (write_unsigned_hexadecimal_integer(s, args, count, **f) != 0) return 1;
     *f += 1;
+  } else if (**f == 'p') {
+    write_ptr_adress(s, args, count);
+    *f += 1;
   } else if (**f == 'n') {
     write_count(args, count);
     *f += 1;
@@ -84,7 +87,7 @@ int main() {
   long int octal = 2247483648;
   // long int octal = -1;
   unsigned int u = 14;
-  unsigned int x = 12345;
+  unsigned int x = 12345678;
   int s21_count = 0;
   int count = 0;
 
@@ -93,18 +96,20 @@ int main() {
 
   char input[150];
   const char *format =
-      "%%,d-%d; c-%c; f-%f; s-%s; e-%e; g-%g; o-%o; u-%u; x-%x; X-%X; n-%n;";
+      "%%,d-%d; c-%c; f-%f; s-%s; e-%e; g-%g; o-%o; u-%u; x-%x; X-%X; n-%n; "
+      "p-%p";
 
   // printf("data: %d, %c, %f, %s, %f, %f\n", num, ch, fl, str, e, e);
   // printf("format: %s\n", format);
 
   int co = s21_sprintf(input, format, num, ch, fl, str, e, g, octal, u, x, x,
-                       &s21_count);
+                       &s21_count, &str);
   printf("s21_    input: %s\n", input);
   printf("s21_count: %d\n", s21_count);
   printf("Кол-во: %d\n", co);
 
-  co = sprintf(input, format, num, ch, fl, str, e, g, octal, u, x, x, &count);
+  co = sprintf(input, format, num, ch, fl, str, e, g, octal, u, x, x, &count,
+               &str);
 
   printf("sprintf input: %s\n", input);
   printf("count: %d\n", count);
