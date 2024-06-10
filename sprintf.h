@@ -7,6 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct {
+  int minus, offset, need_pluse, space, grid, zero;
+
+  int h, l, L;
+} Flags;
+
 #endif
 
 #ifndef WRITE
@@ -24,7 +30,17 @@ void reverse_arr(char *arr);
 #define MYMATH
 
 #include <math.h>
-
+void mathematical_flags(char **s, int *count, Flags *flags);
 #include "myMath.c"
+
+#endif
+
+#ifndef MYFLAGS
+#define MYFLAGS
+
+int str_to_int(char *num);
+#include <limits.h>
+
+#include "flags.c"
 
 #endif

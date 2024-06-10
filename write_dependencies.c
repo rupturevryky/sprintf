@@ -4,15 +4,25 @@ void add_char(char **s, char ch, int *count) {
   *count += 1;
 }
 
-void add_int(char **s, int int_ptr, int *count) {
-  int first_digit = getFirstDigit(int_ptr);
+void mathematical_flags(char **s, int *count, Flags *flags) {
+  if (flags->need_pluse)
+    add_char(s, '+', count);
+  else if (flags->space)
+    add_char(s, ' ', count);
+}
 
-  for (int i = take_len_of_int(int_ptr, 5); i >= 0; i--) {
+void add_int(char **s, long long int int_ptr, int *count) {
+  int first_digit = getFirstDigit(int_ptr);
+  for (int i = take_len_of_int(int_ptr, 5); i > 0; i--) {
     add_char(s, first_digit + '0', count);
 
     if (i != 0) {
       int_ptr %= increase_discharge(i);
       first_digit = getFirstDigit(int_ptr);
+      while (i > take_len_of_int(int_ptr, 5) + 1) {
+        add_char(s, '0', count);
+        i--;
+      }
     }
   }
 }
@@ -22,7 +32,7 @@ void add_string(char **s, char *str, int *count) {
 }
 
 void clear_ending_zeros(char *float_string, int len) {
-  for (int i = strlen(float_string) - 1; i > len; i--) {
+  for (int i = strlen(float_string) - 1; i >= len && i > 0; i--) {
     if (float_string[i] == '0')
       float_string[i] = '\0';
     else
@@ -53,7 +63,7 @@ char *take_e_part(char E, int num, int was_a_discharge_upgrade,
                   int count_zero) {
   int e = 0;
   if (num > 0) {
-    e = take_len_of_int(num, 5);
+    e = take_len_of_int(num, 5) - 1;
     if (was_a_discharge_upgrade) e += 1;
   } else
     e = 0 - count_zero;
@@ -90,7 +100,9 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
   for (int i = 0; buffer[i] != '\0' && i < number_boundary; i++) {
     if (buffer[i] == '0' && !start) continue;
     add_char(s, buffer[i], count);
-    if (start == 0) add_char(s, '.', count);
+    if (start == 0 && ((start + 1 < number_boundary - tmp_count_zero) ||
+                       ((buffer[i + 1] != '\0') && (i + 1 < number_boundary))))
+      add_char(s, '.', count);
     start++;
   }
   if (start == 0) {
@@ -124,5 +136,25 @@ void reverse_arr(char *arr) {
 
     start++;
     end--;
+  }
+}
+
+void offset_func(int count_start, Flags *flags, char **s, int *count) {
+  int len = *count - count_start;
+  int offset = flags->offset;
+  if (flags->minus)
+    while (len < offset) {
+      add_char(s, ' ', count);
+      len++;
+    }
+  else if (flags->need_pluse && len < offset) {
+    int insertLen = offset - len;
+    char insert[insertLen];
+    for (int i = 0; i < insertLen; i++) insert[i] = ' ';
+    *s -= len;
+    memmove(*s + insertLen, *s, len + 1);
+    strncpy(*s, insert, insertLen);
+    *s += len + 1;
+    *count += insertLen;
   }
 }

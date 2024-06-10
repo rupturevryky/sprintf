@@ -1,29 +1,38 @@
 #include "sprintf.h"
 
-int increase_discharge(int exp) {
+int str_to_int(char *num) {
+  int res = 0;
+  for (int i = 0; num[i] != '\0'; i++) {
+    res += num[i] - '0';
+    if (num[i] != '\0' && num[i + 1] != '\0') res *= 10;
+  }
+  return res;
+}
+
+long long int increase_discharge(int exp) {
   if (exp == 0) return 0;
-  int base = 10;
+  if (exp == 19) return 999999999999999999 + 1;
+  long long int base = 1;
   for (int i = 1; i < exp; i++) base *= 10;
   return base;
 }
 
-int take_len_of_int(int num, int now) {
-  if (num > 1000000000) return 9;
+int take_len_of_int(long long int num, int now) {
+  if (num > 999999999999999999) return 19;
+  long long int max_now = increase_discharge(now);
+  if (num < max_now && num >= increase_discharge(now - 1)) return now - 1;
 
-  if (num < increase_discharge(now) && num >= increase_discharge(now - 1))
-    return now - 1;
-
-  if (num > increase_discharge(now)) return take_len_of_int(num, now + 1);
-  if (num < increase_discharge(now)) return take_len_of_int(num, now - 1);
+  if (num > max_now) return take_len_of_int(num, now + 1);
+  if (num < max_now) return take_len_of_int(num, now - 1);
 
   return now;
 }
 
-int getFirstDigit(int number) {
+int getFirstDigit(long long int number) {
   while (number >= 10) {
     number /= 10;
   }
-  return number;
+  return (int)number;
 }
 
 int digit_down(int *num, int *tpm_len, int *len, int E, int *count, char **s,
@@ -48,11 +57,13 @@ int digit_down(int *num, int *tpm_len, int *len, int E, int *count, char **s,
   return delta;
 }
 
-int take_zero_count(char **s, int *count, double *float_ptr, int is_long) {
+int take_zero_count(char **s, int *count, double *float_ptr, int is_long,
+                    Flags *flags) {
   if (*float_ptr < 0) {
     *float_ptr = 0 - *float_ptr;
     add_char(s, '-', count);
-  }
+  } else
+    mathematical_flags(s, count, flags);
   if (*float_ptr == 0.) return 6;
   int count_fractional_zero = 0;
   while (1) {
@@ -69,8 +80,8 @@ int take_zero_count(char **s, int *count, double *float_ptr, int is_long) {
 }
 
 int zero_count_for_scientific(char **s, int *count, double *float_ptr,
-                              char *buffer, int *tmp_count_zero) {
-  int count_zero = take_zero_count(s, count, float_ptr, 1);
+                              char *buffer, int *tmp_count_zero, Flags *flags) {
+  int count_zero = take_zero_count(s, count, float_ptr, 1, flags);
   if ((int)*float_ptr == 0) count_zero++;
 
   delate_point(buffer);
@@ -137,13 +148,12 @@ int rounding_all_fractional(char *float_arr, int count_zero,
 
 char *decimal_to_hex(unsigned long number, char mode) {
   if (number == 0) {
-    printf("0");
     return "0";
   }
   mode = (mode == 'x') ? 'a' : 'A';
 
   unsigned long remainder;
-  char *hex = (char *)malloc(50 * sizeof(char));
+  static char hex[50];
 
   int i = 0;
   while (number != 0) {

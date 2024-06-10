@@ -2,55 +2,57 @@
 #include "sprintf.h"
 #include "write_dependencies.c"
 
-int write_char(char **s, va_list *args, int *count) {
+int write_char(char **s, va_list *args, int *count, Flags *flags) {
   char char_ptr = va_arg(*args, int);
   if (!char_ptr) return 1;
+  int count_start = *count;
 
   add_char(s, char_ptr, count);
+  offset_func(count_start, flags, s, count);
 
   return 0;
 }
 
-int write_int(char **s, va_list *args, int *count) {
-  int int_ptr = va_arg(*args, int);
+int write_int(char **s, va_list *args, int *count, Flags *flags,
+              char specifer) {
+  long long int int_ptr = va_arg(*args, long long int);
+  if (check_limits(int_ptr, flags, specifer)) return 1;
 
+  int count_start = *count;
   if (int_ptr < 0) {
     int_ptr *= -1;
     add_char(s, '-', count);
-  }
-
-  if (int_ptr < -2147483647 || int_ptr > 2147483647) {
-    fprintf(stderr,
-            "\033[31;1merror:\033[0m format ‘%%d’ expects argument of type "
-            "‘int’, but argument 3 has type ‘long int’  "
-            "[\033[31;1m-Werror=format=\033[0m]\n");
-    return 1;
-  }
+  } else
+    mathematical_flags(s, count, flags);
 
   add_int(s, int_ptr, count);
 
+  offset_func(count_start, flags, s, count);
   return 0;
 }
 
-int write_scientific_notation(char **s, va_list *args, int *count, char E) {
+int write_scientific_notation(char **s, va_list *args, int *count, char E,
+                              Flags *flags) {
   double float_ptr = va_arg(*args, double);
   char buffer[17];
   gcvt(float_ptr, 17, buffer);
 
-  int tmp_count_zero = 0;
-  int count_zero =
-      zero_count_for_scientific(s, count, &float_ptr, buffer, &tmp_count_zero);
-
+  int count_start = *count, tmp_count_zero = 0,
+      count_zero = zero_count_for_scientific(s, count, &float_ptr, buffer,
+                                             &tmp_count_zero, flags);
   rounding_all_fractional(buffer, tmp_count_zero, &count_zero, 6);
   write_ready_scientific_num(s, count, buffer, count_zero, float_ptr, E, 6);
+  offset_func(count_start, flags, s, count);
 
   return 0;
 }
 
-void write_float(char **s, va_list *args, int *count) {
+void write_float(char **s, va_list *args, int *count, Flags *flags) {
   double float_ptr = va_arg(*args, double);
+  int count_start = *count;
 
-  int count_fractional_zero = take_zero_count(s, count, &float_ptr, 0);
+  int count_fractional_zero = take_zero_count(s, count, &float_ptr, 0, flags);
+
   char buffer[25];
 
   if (count_fractional_zero > 3) {
@@ -83,18 +85,21 @@ void write_float(char **s, va_list *args, int *count) {
     if (wasnt_point) add_char(s, '.', count);
     for (; count_fractional < 6; count_fractional++) add_char(s, '0', count);
   }
+  offset_func(count_start, flags, s, count);
 }
 
-void write_shortest_representation(char **s, va_list *args, int *count) {
+void write_shortest_representation(char **s, va_list *args, int *count,
+                                   Flags *flags) {
   int len = 5;
   double float_ptr = va_arg(*args, double);
+  int count_start = *count;
 
   char buffer[17];
   gcvt(float_ptr, 17, buffer);
 
   int tmp_count_zero = 0;
-  int count_zero =
-      zero_count_for_scientific(s, count, &float_ptr, buffer, &tmp_count_zero);
+  int count_zero = zero_count_for_scientific(s, count, &float_ptr, buffer,
+                                             &tmp_count_zero, flags);
 
   int was_greade =
       rounding_all_fractional(buffer, tmp_count_zero, &count_zero, len);
@@ -113,16 +118,21 @@ void write_shortest_representation(char **s, va_list *args, int *count) {
       add_char(s, buffer[i], count);
     }
   }
-};
+  offset_func(count_start, flags, s, count);
+}
 
-int write_string(char **s, va_list *args, int *count) {
+int write_string(char **s, va_list *args, int *count, Flags *flags) {
   char *str_param = va_arg(*args, char *);
+  int count_start = *count;
   add_string(s, str_param, count);
+  offset_func(count_start, flags, s, count);
   return 0;
 }
 
-int write_unsigned_octal(char **s, va_list *args, int *count) {
+int write_unsigned_octal(char **s, va_list *args, int *count, Flags *flags) {
   unsigned long decimalNumber = va_arg(*args, unsigned long);
+  if (check_limits(decimalNumber, flags, 'o')) return 1;
+  int count_start = *count;
 
   if ((long long int)decimalNumber < 0) {
     fprintf(stderr,
@@ -133,6 +143,7 @@ int write_unsigned_octal(char **s, va_list *args, int *count) {
   if (decimalNumber == 0) {
     char ch = '0';
     add_char(s, ch, count);
+    offset_func(count_start, flags, s, count);
     return 0;
   }
 
@@ -147,46 +158,50 @@ int write_unsigned_octal(char **s, va_list *args, int *count) {
 
   reverse_arr(octal);
   add_string(s, octal, count);
+  offset_func(count_start, flags, s, count);
 
   return 0;
 }
 
-int write_unsigned_int(char **s, va_list *args, int *count) {
-  unsigned long int_ptr = va_arg(*args, unsigned long);
+int write_unsigned_int(char **s, va_list *args, int *count, Flags *flags) {
+  unsigned long uns_long = va_arg(*args, unsigned long);
+  if (check_limits(uns_long, flags, 'u')) return 1;
+  int count_start = *count;
 
-  if (int_ptr > 2147483647) {
+  if (uns_long > 2147483647) {
     fprintf(stderr,
             "\033[31;1merror:\033[0m format ‘%%u’ expects argument of type "
             "‘unsigned int’, but "
-            "argument 3 has other type\n");
+            "argument has other type\n");
     return 1;
   }
 
-  add_int(s, int_ptr, count);
-
+  add_int(s, uns_long, count);
+  offset_func(count_start, flags, s, count);
   return 0;
 }
 
 int write_unsigned_hexadecimal_integer(char **s, va_list *args, int *count,
-                                       char mode) {
+                                       char mode, Flags *flags) {
   unsigned long num = va_arg(*args, unsigned long);
-  if (num > 2147483647) {
-    fprintf(stderr,
-            "\033[31;1merror:\033[0m format ‘%%x’ expects argument of type "
-            "‘unsigned int’, but argument 3 has type ‘long int’ \n");
-    return 1;
-  }
+  if (check_limits(num, flags, mode)) return 1;
+  int count_start = *count;
+  // if (num > 2147483647 && flags->l == 0) {
+  //   fprintf(stderr,
+  //           "\033[31;1merror:\033[0m format ‘%%x’ expects argument of type "
+  //           "‘unsigned int’, but argument has type ‘long int’ \n");
+  //   return 1;
+  // }
   char *buffer = decimal_to_hex(num, mode);
 
   add_string(s, buffer, count);
-
-  free(buffer);
-
+  offset_func(count_start, flags, s, count);
   return 0;
 }
 
-void write_ptr_adress(char **s, va_list *args, int *count) {
+void write_ptr_adress(char **s, va_list *args, int *count, Flags *flags) {
   void *ptr = va_arg(*args, void *);
+  int count_start = *count;
   unsigned long long address = (unsigned long long)ptr;
   int j = 0;
   unsigned long long temp;
@@ -202,9 +217,16 @@ void write_ptr_adress(char **s, va_list *args, int *count) {
   reverse_arr(buffer);
 
   add_string(s, buffer, count);
+  offset_func(count_start, flags, s, count);
 }
 
 void write_count(va_list *args, int *count) {
   int *num = va_arg(*args, int *);
   *num = *count;
+}
+
+void write_percentage(char **s, char ch, int *count, Flags *flags) {
+  int count_start = *count;
+  add_char(s, ch, count);
+  offset_func(count_start, flags, s, count);
 }
