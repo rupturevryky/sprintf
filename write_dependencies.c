@@ -139,22 +139,30 @@ void reverse_arr(char *arr) {
   }
 }
 
+// void add_chars() {}
+
 void offset_func(int count_start, Flags *flags, char **s, int *count) {
   int len = *count - count_start;
-  int offset = flags->offset;
   if (flags->minus)
-    while (len < offset) {
+    while (len < flags->offset) {
       add_char(s, ' ', count);
       len++;
     }
-  else if (flags->need_pluse && len < offset) {
-    int insertLen = offset - len;
-    char insert[insertLen];
-    for (int i = 0; i < insertLen; i++) insert[i] = ' ';
+  else if ((flags->need_pluse || flags->space) && len < flags->offset) {
     *s -= len;
-    memmove(*s + insertLen, *s, len + 1);
-    strncpy(*s, insert, insertLen);
-    *s += len + 1;
+    // Создаем временный буфер для новой строки с достаточным размером
+    int insertLen = flags->offset - len;
+
+    char temp[flags->offset];
+    temp[flags->offset] = '\0';
+    // Заполняем пробелами нужное количество позиций
+    for (int i = 0; i < insertLen; i++) temp[i] = ' ';
+    // Копируем оставшиеся символы после индекса в новый буфер
+    strncpy(temp + insertLen, *s, strlen(*s));
+    // Обновляем указатель на новую строку
+    strncpy(*s, temp, strlen(temp));
+
+    *s += flags->offset;
     *count += insertLen;
   }
 }

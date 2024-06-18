@@ -1,9 +1,7 @@
 void take_len(const char **f, Flags *flags) {
-  if (**f == '+') {
-    flags->need_pluse = 1;
-    *f += 1;
-  }
   char num[10];
+  num[0] = 0;
+  num[1] = '\0';
   int i = 0;
   while (**f > 47 && **f < 58) {
     num[i] = **f;
@@ -17,95 +15,88 @@ void take_len(const char **f, Flags *flags) {
 int take_flags(const char **f, Flags *flags, int res) {
   switch (**f) {
     case '-':
-      if (flags->minus == 1) {
-        fprintf(stderr,
-                "\033[31;1merror:\033[0m repeated '-' flag in format\n");
-        return 1;
-      }
+      if (flags->minus == 1) return repeated_error(**f);
       *f += 1;
-      take_len(f, flags);
       flags->minus = 1;
       res = take_flags(f, flags, res);
       break;
     case '+':
-      if (flags->need_pluse == 1) {
-        fprintf(stderr,
-                "\033[31;1merror:\033[0m repeated '+' flag in format\n");
-        return 1;
-      }
-      take_len(f, flags);
+      if (flags->need_pluse == 1) return repeated_error(**f);
+      *f += 1;
+      flags->need_pluse = 1;
       res = take_flags(f, flags, res);
       break;
     case ' ':
-      if (flags->space == 1) {
-        fprintf(stderr,
-                "\033[31;1merror:\033[0m repeated ' ' flag in format\n");
-        return 1;
-      }
-      flags->space = 1;
+      if (flags->space == 1) return repeated_error(**f);
       *f += 1;
+      flags->space = 1;
+      res = take_flags(f, flags, res);
+      break;
+    case '0':
+      if (flags->zero == 1) return repeated_error(**f);
+      *f += 1;
+      flags->zero = 1;
       res = take_flags(f, flags, res);
       break;
     default:
+      take_len(f, flags);
       break;
   }
   return res;
 }
 
+int length_description(const char **f, Flags *flags) {
+  char ch = **f;
+  if (ch == 'h' || ch == 'l' || ch == 'L')
+    *f += 1;
+  else
+    return 0;
+
+  if (ch == 'h') {
+    if (**f != 'i' && **f != 'd' && **f != 'o' && **f != 'u' && **f != 'x' &&
+        **f != 'X')
+      return length_modifier_error('h', **f);
+
+    flags->h = 1;
+  } else if (ch == 'l') {
+    if (**f != 'i' && **f != 'd' && **f != 'o' && **f != 'u' && **f != 'x' &&
+        **f != 'X' && **f != 'c' && **f != 's' && **f != 'l')
+      return length_modifier_error('l', **f);
+
+    flags->l += 1;
+  } else if (ch == 'L') {
+  }
+  return length_description(f, flags);
+}
+
 int check_h_limits(long long int num, Flags *flags, char specifer) {
   if (specifer == 'i' || specifer == 'd') {
-    if (flags->h && (num > 32767 || num < -32768)) {
-      fprintf(
-          stderr,
-          "\033[31;1merror:\033[0m format ‘%%%c’ expects argument of type "
-          "‘short int’ but the argument is of type wider than ‘short int’\n",
-          specifer);
-      return 1;
-    }
-  } else if (num < 0 || (num > 65535 && !flags->l)) {
-    fprintf(stderr,
-            "\033[31;1merror:\033[0m format ‘%%%c’ expects argument of type "
-            "‘unsigned short int’ but the argument is of type wider than "
-            "‘unsigned short int’\n",
-            specifer);
-    return 1;
-  }
+    if (flags->h && (num > 32767 || num < -32768))
+      return argument_is_of_type_error("short int", specifer);
+
+  } else if (num < 0 || (num > 65535 && !flags->l))
+    return argument_is_of_type_error("unsigned short int", specifer);
+
   return 0;
 }
 
 int check_l_for_d_i(long long int num, int flag_l, char specifer) {
-  if (flag_l && (num > LONG_MAX || num < LONG_MIN)) {
-    fprintf(stderr,
-            "\033[31;1merror:\033[0m format ‘%%%c’ expects argument of type "
-            "‘long int’ but the argument is of type wider than ‘long long "
-            "int’\n",
-            specifer);
-    return 1;
-  }
+  if (flag_l && (num > LONG_MAX || num < LONG_MIN))
+    return argument_is_of_type_error("long int", specifer);
+
   return 0;
 }
 
 int check_l_eq_one_for_unsigned(long long int num, int flag_l, char specifer) {
-  if (flag_l && ((unsigned long int)num > ULONG_MAX || num < 0)) {
-    fprintf(stderr,
-            "\033[31;1merror:\033[0m format ‘%%%c’ expects argument of type "
-            "‘long int’ but the argument is of type wider than ‘long long "
-            "int’\n",
-            specifer);
-    return 1;
-  }
+  if (flag_l && ((unsigned long int)num > ULONG_MAX || num < 0))
+    return argument_is_of_type_error("unsigned long int", specifer);
+
   return 0;
 }
 
 int check_l_eq_two_for_unsigned(long long int num, int flag_l, char specifer) {
-  if (flag_l && ((unsigned long long int)num > ULLONG_MAX || num < 0)) {
-    fprintf(stderr,
-            "\033[31;1merror:\033[0m format ‘%%%c’ expects argument of type "
-            "‘long int’ but the argument is of type wider than ‘long long "
-            "int’\n",
-            specifer);
-    return 1;
-  }
+  if (flag_l && ((unsigned long long int)num > ULLONG_MAX || num < 0))
+    return argument_is_of_type_error("unsigned long long int", specifer);
   return 0;
 }
 

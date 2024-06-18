@@ -15,6 +15,13 @@ typedef struct {
 
 #endif
 
+#ifndef ERRORS
+#define ERRORS
+
+#include "errors.c"
+
+#endif
+
 #ifndef WRITE
 #define WRITE
 
