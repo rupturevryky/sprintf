@@ -21,6 +21,13 @@ int argument_is_of_type_error(char* format, char specifer) {
   return 1;
 }
 
+int directive_writing_more_bytes_error() {
+  fprintf(stderr,
+          "\033[31;1merror:\033[0m ‘%%o’ directive writing 11 bytes into a "
+          "region of size 10\n");
+  return 1;
+}
+
 void gnu_printf_format_error(char flag, char ch) {
   fprintf(stderr,
           "\033[31;1merror:\033[0m '%c' flag used with ‘%%%c’ gnu_printf "

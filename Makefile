@@ -11,6 +11,4 @@ clear:
 	rm -rf tmp sprintf
 
 valgrind: clear sprintf
-	valgrind --tool=memcheck -s --leak-check=yes ./sprintf > /dev/null;
-
-
+	valgrind --track-origins=yes --tool=memcheck -s --leak-check=yes ./sprintf > /dev/null;

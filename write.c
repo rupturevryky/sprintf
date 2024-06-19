@@ -134,12 +134,9 @@ int write_unsigned_octal(char **s, va_list *args, int *count, Flags *flags) {
   if (check_limits(decimalNumber, flags, 'o')) return 1;
   int count_start = *count;
 
-  if ((long long int)decimalNumber < 0) {
-    fprintf(stderr,
-            "\033[31;1merror:\033[0m ‘%%o’ directive writing 11 bytes into a "
-            "region of size 10\n");
-    return 1;
-  }
+  if ((long long int)decimalNumber < 0)
+    return directive_writing_more_bytes_error();
+
   if (decimalNumber == 0) {
     char ch = '0';
     add_char(s, ch, count);
@@ -168,13 +165,8 @@ int write_unsigned_int(char **s, va_list *args, int *count, Flags *flags) {
   if (check_limits(uns_long, flags, 'u')) return 1;
   int count_start = *count;
 
-  if (uns_long > 2147483647) {
-    fprintf(stderr,
-            "\033[31;1merror:\033[0m format ‘%%u’ expects argument of type "
-            "‘unsigned int’, but "
-            "argument has other type\n");
-    return 1;
-  }
+  if (uns_long > 2147483647)
+    return argument_is_of_type_error("unsigned int", 'u');
 
   add_int(s, uns_long, count);
   offset_func(count_start, flags, s, count);
@@ -186,12 +178,6 @@ int write_unsigned_hexadecimal_integer(char **s, va_list *args, int *count,
   unsigned long num = va_arg(*args, unsigned long);
   if (check_limits(num, flags, mode)) return 1;
   int count_start = *count;
-  // if (num > 2147483647 && flags->l == 0) {
-  //   fprintf(stderr,
-  //           "\033[31;1merror:\033[0m format ‘%%x’ expects argument of type "
-  //           "‘unsigned int’, but argument has type ‘long int’ \n");
-  //   return 1;
-  // }
   char *buffer = decimal_to_hex(num, mode);
 
   add_string(s, buffer, count);

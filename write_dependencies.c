@@ -2,6 +2,7 @@ void add_char(char **s, char ch, int *count) {
   **s = ch;
   *s += 1;
   *count += 1;
+  **s = '\0';
 }
 
 void mathematical_flags(char **s, int *count, Flags *flags) {
@@ -139,30 +140,43 @@ void reverse_arr(char *arr) {
   }
 }
 
-// void add_chars() {}
+void add_prev_chars(const int offset, char **s, int *count, int len, char ch) {
+  *s -= len;
+  // Создаем временный буфер для новой строки с достаточным размером
+  int insertLen = offset - len;
+
+  int s_len = strlen(*s);
+  int temp_len = s_len > offset ? s_len + insertLen : offset;
+
+  char temp[temp_len];
+  temp[temp_len] = '\0';
+  // Заполняем пробелами нужное количество позиций
+  for (int i = 0; i < temp_len; i++) temp[i] = ch;
+  // Копируем оставшиеся символы после индекса в новый буфер
+  strncpy(temp + insertLen, *s, s_len);
+  // Обновляем указатель на новую строку
+  strncpy(*s, temp, temp_len);
+  *s += offset;
+  *count += insertLen;
+}
 
 void offset_func(int count_start, Flags *flags, char **s, int *count) {
   int len = *count - count_start;
-  if (flags->minus)
+  if (flags->minus) {
     while (len < flags->offset) {
       add_char(s, ' ', count);
       len++;
     }
-  else if ((flags->need_pluse || flags->space) && len < flags->offset) {
-    *s -= len;
-    // Создаем временный буфер для новой строки с достаточным размером
-    int insertLen = flags->offset - len;
-
-    char temp[flags->offset];
-    temp[flags->offset] = '\0';
-    // Заполняем пробелами нужное количество позиций
-    for (int i = 0; i < insertLen; i++) temp[i] = ' ';
-    // Копируем оставшиеся символы после индекса в новый буфер
-    strncpy(temp + insertLen, *s, strlen(*s));
-    // Обновляем указатель на новую строку
-    strncpy(*s, temp, strlen(temp));
-
-    *s += flags->offset;
-    *count += insertLen;
+    if (flags->space) {
+      *s -= 1;
+      *count -= 1;
+      add_prev_chars(flags->offset, s, count, len, ' ');
+      add_char(s, ' ', count);
+    }
   }
+
+  else if ((flags->need_pluse || flags->space) && len < flags->offset)
+    add_prev_chars(flags->offset, s, count, len, ' ');
+  else if ((flags->zero) && len < flags->offset)
+    add_prev_chars(flags->offset, s, count, len, '0');
 }

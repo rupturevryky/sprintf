@@ -117,14 +117,8 @@ int check_limits(long long int num, Flags *flags, char specifer) {
   if (flags->l && check_l_limits(num, flags->l, specifer)) return 1;
 
   if ((specifer == 'i' || specifer == 'd') &&
-      (num < -2147483647 || num > 2147483647) && flags->l == 0 &&
-      flags->h == 0) {
-    fprintf(stderr,
-            "\033[31;1merror:\033[0m format ‘%%%c’ expects argument of type "
-            "‘int’, but argument has type ‘long int’  "
-            "[\033[31;1m-Werror=format=\033[0m]\n",
-            specifer);
-    return 1;
-  }
+      (num < -2147483647 || num > 2147483647) && flags->l == 0 && flags->h == 0)
+    return argument_is_of_type_error("int", specifer);
+
   return 0;
 }

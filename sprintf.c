@@ -56,7 +56,6 @@ int s21_sprintf(char *str, const char *format, ...) {
       f++;
     }
   }
-  *s = '\0';
   va_end(now_arg);
   if (res) exit(1);
   return count;
@@ -89,6 +88,7 @@ int main() {
   int count = 1;
 
   char ch = 'A';
+  char B = 'B';
   char str[] = "[str]";
 
   char s21_input[200];
@@ -103,21 +103,23 @@ int main() {
   s21_sprintf(s21_input, "1:%d; 2:|%-3d|; 3:|%-+3d|; 4:|% d|", 2247483648, num,
               num, num);
    */
-
+  const char *test_0_format =
+      "1:%d; 2:|%-3d|; 3:|%-+3d|; 4:|% d|; 5:|% 15d|; 6:|%+15d|; 7:|%015f|";
+  const char *test_1_format = "1: %c; 2: |%c|; 3: |%s|; 4: |%s|";
+  const char *test_2_format = "1:%f; 2:|%+10f|; 3:|%- 25f|; 4:|%- 25ld|";
   const char *format =
-      "%%,d-%d; c-%c; f-%f; s-%s; e-%+e; g-%g; o-%o; u-%u; x-%x; X-%X; n-%n;"
+      "%%,d-%d; c-%c; f-%f; s-%s; e-%+e; g-%g; o-%o; u-%u; x-%x; X-%X; "
+      "n-%n;"
       "p-%p; -5d-|%-3d|; -+10d-|%-+3d|; +10f-|%+10f|; (%% f)-|% f|;";
 
   const char *length_format =
       "%%ld-%ld; %%lli-%lli; %%lo-%lo; %%llu-%llu; %%lx-%lx; %%llX-%llx";
 
-  int s21_co = s21_sprintf(
-      s21_input, "1:%d; 2:|%-3d|; 3:|%-+3d|; 4:|% d|; 5:|% 15d|; 6:|%+15d|",
-      num, num, num, num, num, num);
+  // test 0
+  int s21_co =
+      s21_sprintf(s21_input, test_0_format, num, num, num, num, num, num, fl);
   // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
-  int co =
-      sprintf(input, "1:%d; 2:|%-3d|; 3:|%-+3d|; 4:|% d|; 5:|% 15d|; 6:|%+15d|",
-              num, num, num, num, num, num);
+  int co = sprintf(input, test_0_format, num, num, num, num, num, num, fl);
   // printf("    input: %s; co: %d\n", input, co);
 
   if (strcmp(s21_input, input) != 0 || co != s21_co) {
@@ -125,23 +127,10 @@ int main() {
     success = 0;
   }
   test_number++;
-
-  s21_co = s21_sprintf(s21_input, "1: %c; 2: |%c|; 3: |%s|; 4: |%s|", 'A', 'B',
-                       "qwe", "QWE");
+  // test 1
+  s21_co = s21_sprintf(s21_input, test_1_format, ch, B, str, "QWE");
   // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
-  co = sprintf(input, "1: %c; 2: |%c|; 3: |%s|; 4: |%s|", 'A', 'B', "qwe",
-               "QWE");
-
-  if (strcmp(s21_input, input) != 0 || co != s21_co) {
-    success = 0;
-    printf("test_number: %d\n", test_number);
-  }
-  test_number++;
-
-  // printf("    input: %s; co: %d\n", input, co);
-  s21_co = s21_sprintf(s21_input, "1: %f; 2: |%+10f|;", fl, fl);
-  // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
-  co = sprintf(input, "1: %f; 2: |%+10f|;", fl, fl);
+  co = sprintf(input, test_1_format, ch, B, str, "QWE");
   // printf("    input: %s; co: %d\n", input, co);
 
   if (strcmp(s21_input, input) != 0 || co != s21_co) {
@@ -149,7 +138,18 @@ int main() {
     printf("test_number: %d\n", test_number);
   }
   test_number++;
+  // test 2
+  s21_co = s21_sprintf(s21_input, test_2_format, fl, fl, fl, octal);
+  // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
+  co = sprintf(input, test_2_format, fl, fl, fl, octal);
+  // printf("    input: %s; co: %d\n", input, co);
 
+  if (strcmp(s21_input, input) != 0 || co != s21_co) {
+    success = 0;
+    printf("test_number: %d\n", test_number);
+  }
+  test_number++;
+  // test 3
   s21_co = s21_sprintf(s21_input, format, num, ch, fl, str, e, g, octal, u, x,
                        x, &my_s21_count, &str, num, num, fl, fl);
   // printf("s21_    input: %s; s21_count: %d; co: %d\n", s21_input, s21_count,
@@ -164,7 +164,7 @@ int main() {
     printf("test_number: %d\n", test_number);
   }
   test_number++;
-
+  // test 4
   s21_co = s21_sprintf(s21_input, length_format, lnum, u, my_s21_count, count,
                        u, lnum);
   // printf("s21_    input: %s; s21_count: %d; co: %d\n", s21_input, s21_count,
