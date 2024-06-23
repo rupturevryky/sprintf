@@ -1,3 +1,5 @@
+#include "sprintf.h"
+
 void take_len(const char **f, Flags *flags) {
   char num[10];
   num[0] = 0;
@@ -12,31 +14,38 @@ void take_len(const char **f, Flags *flags) {
   flags->offset = str_to_int(num);
 }
 
-int take_flags(const char **f, Flags *flags, int res) {
+int take_flags(const char **f, Flags *flags, int res, va_list *args) {
   switch (**f) {
     case '-':
       if (flags->minus == 1) return repeated_error(**f);
       *f += 1;
       flags->minus = 1;
-      res = take_flags(f, flags, res);
+      res = take_flags(f, flags, res, args);
       break;
     case '+':
       if (flags->need_pluse == 1) return repeated_error(**f);
       *f += 1;
       flags->need_pluse = 1;
-      res = take_flags(f, flags, res);
+      res = take_flags(f, flags, res, args);
       break;
     case ' ':
       if (flags->space == 1) return repeated_error(**f);
       *f += 1;
       flags->space = 1;
-      res = take_flags(f, flags, res);
+      res = take_flags(f, flags, res, args);
       break;
     case '0':
       if (flags->zero == 1) return repeated_error(**f);
       *f += 1;
       flags->zero = 1;
-      res = take_flags(f, flags, res);
+      res = take_flags(f, flags, res, args);
+      break;
+    case '*':
+      if (flags->star == 1) return repeated_error(**f);
+      *f += 1;
+      flags->star = 1;
+      flags->offset = va_arg(*args, int);
+      res = take_flags(f, flags, res, args);
       break;
     default:
       take_len(f, flags);

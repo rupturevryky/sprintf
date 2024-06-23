@@ -1,3 +1,5 @@
+#include "sprintf.h"
+
 void add_char(char **s, char ch, int *count) {
   **s = ch;
   *s += 1;
@@ -173,10 +175,10 @@ void offset_func(int count_start, Flags *flags, char **s, int *count) {
       add_prev_chars(flags->offset, s, count, len, ' ');
       add_char(s, ' ', count);
     }
-  }
-
-  else if ((flags->need_pluse || flags->space) && len < flags->offset)
-    add_prev_chars(flags->offset, s, count, len, ' ');
-  else if ((flags->zero) && len < flags->offset)
+  } else if (flags->zero && len < flags->offset)
     add_prev_chars(flags->offset, s, count, len, '0');
+
+  else if ((flags->need_pluse || flags->space || flags->offset > 0) &&
+           len < flags->offset)
+    add_prev_chars(flags->offset, s, count, len, ' ');
 }
