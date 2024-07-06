@@ -164,6 +164,14 @@ void add_prev_chars(const int offset, char **s, int *count, int len, char ch) {
 
 void offset_func(int count_start, Flags *flags, char **s, int *count) {
   int len = *count - count_start;
+
+  if (len < flags->point && flags->point > 0) {
+    if (flags->need_pluse || flags->space) len--;
+    add_prev_chars(flags->point, s, count, len, '0');
+    len = flags->point;
+    if (flags->need_pluse || flags->space) len++;
+    **s = '\0';
+  }
   if (flags->minus) {
     while (len < flags->offset) {
       add_char(s, ' ', count);
@@ -175,10 +183,9 @@ void offset_func(int count_start, Flags *flags, char **s, int *count) {
       add_prev_chars(flags->offset, s, count, len, ' ');
       add_char(s, ' ', count);
     }
-  } else if (flags->zero && len < flags->offset)
+  } else if (flags->zero && len < flags->offset) {
     add_prev_chars(flags->offset, s, count, len, '0');
-
-  else if ((flags->need_pluse || flags->space || flags->offset > 0) &&
-           len < flags->offset)
+  } else if ((flags->need_pluse || flags->space || flags->offset > 0) &&
+             len < flags->offset)
     add_prev_chars(flags->offset, s, count, len, ' ');
 }

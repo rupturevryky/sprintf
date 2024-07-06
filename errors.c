@@ -35,6 +35,12 @@ void gnu_printf_format_error(char flag, char ch) {
           flag, ch);
 }
 
+void precision_used_with_gnu_printf_format_error() {
+  fprintf(stderr,
+          "\033[31;1merror:\033[0m precision used with ‘%%c’ gnu_printf format "
+          "[\033[31;1m-Werror=format=\033[0m]\n");
+}
+
 int check_errors(char ch, Flags* flags) {
   int res = 0;
   if (ch == 'c' || ch == 's' || ch == 'p' || ch == 'n' || ch == 'o' ||
@@ -49,6 +55,10 @@ int check_errors(char ch, Flags* flags) {
     }
     if ((ch == 'c' || ch == 'p') && flags->zero) {
       gnu_printf_format_error('0', ch);
+      res = 1;
+    }
+    if (ch == 'c' && flags->point > -1) {
+      precision_used_with_gnu_printf_format_error();
       res = 1;
     }
   }

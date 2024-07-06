@@ -64,7 +64,7 @@ int take_zero_count(char **s, int *count, double *float_ptr, int is_long,
     add_char(s, '-', count);
   } else
     mathematical_flags(s, count, flags);
-  if (*float_ptr == 0.) return 6;
+  if (*float_ptr == 0.) return flags->point > -1 ? flags->point : 6;
   int count_fractional_zero = 0;
   while (1) {
     double one = 0.1;

@@ -8,7 +8,7 @@
 #include <string.h>
 
 typedef struct {
-  int minus, offset, need_pluse, space, zero, star;
+  int minus, offset, need_pluse, space, zero, star, point;
 
   int h, l, L;
 } Flags;

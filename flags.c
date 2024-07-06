@@ -1,6 +1,15 @@
 #include "sprintf.h"
 
-void take_len(const char **f, Flags *flags) {
+int flag_zero(const char **f, Flags *flags) {
+  if (flags->zero == 1) return repeated_error(**f);
+  *f += 1;
+  flags->zero = 1;
+  return 0;
+}
+
+int take_len(const char **f, Flags *flags, int without_check) {
+  if (**f == 48 && !without_check && flag_zero(f, flags)) return 1;
+
   char num[10];
   num[0] = 0;
   num[1] = '\0';
@@ -11,10 +20,11 @@ void take_len(const char **f, Flags *flags) {
     *f += 1;
   }
   num[i] = '\0';
-  flags->offset = str_to_int(num);
+  return str_to_int(num);
 }
 
 int take_flags(const char **f, Flags *flags, int res, va_list *args) {
+  if (!flags->offset) flags->offset = take_len(f, flags, 0);
   switch (**f) {
     case '-':
       if (flags->minus == 1) return repeated_error(**f);
@@ -35,10 +45,9 @@ int take_flags(const char **f, Flags *flags, int res, va_list *args) {
       res = take_flags(f, flags, res, args);
       break;
     case '0':
-      if (flags->zero == 1) return repeated_error(**f);
-      *f += 1;
-      flags->zero = 1;
+      if (flag_zero(f, flags)) return 1;
       res = take_flags(f, flags, res, args);
+
       break;
     case '*':
       if (flags->star == 1) return repeated_error(**f);
@@ -47,8 +56,15 @@ int take_flags(const char **f, Flags *flags, int res, va_list *args) {
       flags->offset = va_arg(*args, int);
       res = take_flags(f, flags, res, args);
       break;
+    case '.':
+      if (flags->point > 0) return repeated_error(**f);
+      *f += 1;
+      flags->point = take_len(f, flags, 1);
+      if (flags->point == 0) flags->point = 1;
+      res = take_flags(f, flags, res, args);
+      break;
     default:
-      take_len(f, flags);
+      if (!flags->offset) flags->offset = take_len(f, flags, 0);
       break;
   }
   return res;
