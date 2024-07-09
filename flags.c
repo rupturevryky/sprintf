@@ -47,7 +47,6 @@ int take_flags(const char **f, Flags *flags, int res, va_list *args) {
     case '0':
       if (flag_zero(f, flags)) return 1;
       res = take_flags(f, flags, res, args);
-
       break;
     case '*':
       if (flags->star == 1) return repeated_error(**f);
@@ -60,7 +59,14 @@ int take_flags(const char **f, Flags *flags, int res, va_list *args) {
       if (flags->point > 0) return repeated_error(**f);
       *f += 1;
       flags->point = take_len(f, flags, 1);
-      if (flags->point == 0) flags->point = 1;
+      // printf("take_len %d\n", flags->point);
+      // if (flags->point == 0) flags->point = 1;
+      res = take_flags(f, flags, res, args);
+      break;
+    case '#':
+      if (flags->grid > 0) return repeated_error(**f);
+      *f += 1;
+      flags->grid = 1;
       res = take_flags(f, flags, res, args);
       break;
     default:
@@ -141,6 +147,7 @@ int check_limits(long long int num, Flags *flags, char specifer) {
   if (flags->h && check_h_limits(num, flags, specifer)) return 1;
   if (flags->l && check_l_limits(num, flags->l, specifer)) return 1;
 
+  // printf("\n~~~num %lld~~~~\n", num);
   if ((specifer == 'i' || specifer == 'd') &&
       (num < -2147483647 || num > 2147483647) && flags->l == 0 && flags->h == 0)
     return argument_is_of_type_error("int", specifer);

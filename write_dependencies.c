@@ -16,7 +16,9 @@ void mathematical_flags(char **s, int *count, Flags *flags) {
 
 void add_int(char **s, long long int int_ptr, int *count) {
   int first_digit = getFirstDigit(int_ptr);
-  for (int i = take_len_of_int(int_ptr, 5); i > 0; i--) {
+  int i = take_len_of_int(int_ptr, 5);
+  // printf("i %d\n", i);
+  for (; i > 0; i--) {
     add_char(s, first_digit + '0', count);
 
     if (i != 0) {
@@ -34,15 +36,72 @@ void add_string(char **s, char *str, int *count) {
   for (int i = 0; str[i] != '\0'; i++) add_char(s, str[i], count);
 }
 
-void clear_ending_zeros(char *float_string, int len) {
-  for (int i = strlen(float_string) - 1; i >= len && i > 0; i--) {
+void clear_ending_zeros(char *float_string, int len, int int_len,
+                        int prev_zero_count) {
+  // printf("1 float_string %s\n", float_string);
+  if (len == 0) len = 1;
+
+  int i = strlen(float_string) - 1;
+  for (; i >= len && i > 0; i--) {
     if (float_string[i] == '0')
       float_string[i] = '\0';
     else
       break;
   }
-}
 
+  if (i > int_len + len) i = int_len + len + prev_zero_count;
+  // printf("2 float_string %s; i %d\n", float_string, i);
+  for (; i >= int_len && i > 0; i--) {
+    if (float_string[i] == '0') {
+      float_string[i] = '\0';
+      if (float_string[i - 1] == '.')
+        float_string[i - 1] = '\0';
+      else
+        break;
+    } else
+      break;
+  }
+  // printf("3 float_string %s; i %d\n", float_string, i);
+  int point_index = -1, start = -1, zero_count = 0;
+  for (int j = 0; float_string[j] != '\0'; j++) {
+    if (float_string[j] == '.') point_index = j;
+    if (start == -1 && float_string[j] > 48 && float_string[j] < 58) start = j;
+    if (start != -1 && zero_count != -1 && point_index > 0 &&
+        float_string[j] == '0') {
+      zero_count++;
+      // printf(
+      //     "float_string[%d] %c; zero_count %d; point_index %d; "
+      //     "start % d\n ",
+      //     i, float_string[i], zero_count, point_index, start);
+      if (zero_count > 4) break;
+    } else if (zero_count > 0 ||
+               (point_index > 0 && start != -1 && float_string[j] != '.'))
+      zero_count = -1;
+  }
+  if (zero_count > 4) float_string[point_index] = '\0';
+  for (int j = 0; float_string[j] != '\0'; j++) i = j;
+  while ((float_string[i] == '0' || float_string[i] == '.') &&
+         i >= point_index && i > 0) {
+    // printf(
+    //     "float_string[%d] %c; zero_count %d; point_index %d; "
+    //     "start % d\n ",
+    //     i, float_string[i], zero_count, point_index, start);
+    float_string[i] = '\0';
+    i--;
+  }
+  // printf("4 float_string %s; i %d; start %d; ; zero_count %d\n",
+  // float_string,
+  //  i, start, zero_count);
+
+  i = prev_zero_count + len;
+  for (; i >= int_len && i > 0; i--) {
+    if (float_string[i] == '0')
+      float_string[i] = '\0';
+    else
+      break;
+  }
+  // printf("5 float_string %s\n", float_string);
+}
 void delate_point(char *arr) {
   int i = 0;
   for (; arr[i] != '\0' && arr[i] != '\n'; i++) {
@@ -64,6 +123,8 @@ void delate_point(char *arr) {
 
 char *take_e_part(char E, int num, int was_a_discharge_upgrade,
                   int count_zero) {
+  if (E == 'G') E = 'E';
+  if (E == 'g') E = 'e';
   int e = 0;
   if (num > 0) {
     e = take_len_of_int(num, 5) - 1;
@@ -90,37 +151,74 @@ char *take_e_part(char E, int num, int was_a_discharge_upgrade,
   return e_buffer;
 }
 
+char *set_point(char *float_arr, int len_of_int) {
+  // printf("my float_arr %s\n", float_arr);
+  int length = strlen(float_arr);
+  static char new_str[50];
+  for (int i = 0, j = 0; i < length; i++, j++) {
+    if (i == len_of_int) {
+      new_str[j] = '.';
+      j++;
+    }
+    new_str[j] = float_arr[i];
+    new_str[j + 1] = '\0';
+  }
+  // new_str[length + 1] = '\0';
+  // printf("my new_str %s\n", new_str);
+  return new_str;
+}
+
+char *set_scientific_point(char *scientific_num) {
+  int i = 0, j = 0;
+  int was_other_int = 0;
+  static char tmp[20];
+  for (; scientific_num[i] != '\0'; i++) {
+    if (scientific_num[i] == '0' && !was_other_int) continue;
+    was_other_int++;
+    tmp[j] = scientific_num[i];
+    j++;
+    if (was_other_int == 1) {
+      tmp[j] = '.';
+      j++;
+    }
+  }
+  tmp[j] = '\0';
+  // printf("scientific_notatio scientific_num %s\n", tmp);
+  return tmp;
+}
+
 void write_ready_scientific_num(char **s, int *count, char *buffer,
                                 int count_zero, double float_ptr, char E,
-                                int len) {
+                                int len, int G_mode) {
   int tmp_count_zero = count_zero;
   if ((int)strlen(buffer) - 1 == 8 && 6 + count_zero >= 11) tmp_count_zero = 0;
 
-  int number_boundary = (len) ? len + 1 : 7;
-  if (buffer[0] == '0') number_boundary += tmp_count_zero;
-
-  int start = 0;
-  for (int i = 0; buffer[i] != '\0' && i < number_boundary; i++) {
-    if (buffer[i] == '0' && !start) continue;
+  len += E == 'E' || E == 'e' ? 2 : 1;
+  int limit = 0, was_point = 0;
+  int i = 0;
+  for (; buffer[i] != '\0' && i < len; i++) {
+    if (limit > len) break;
     add_char(s, buffer[i], count);
-    if (start == 0 && ((start + 1 < number_boundary - tmp_count_zero) ||
-                       ((buffer[i + 1] != '\0') && (i + 1 < number_boundary))))
-      add_char(s, '.', count);
-    start++;
+    if (was_point) limit++;
+    if (buffer[i] == '.') was_point = 1;
   }
-  if (start == 0) {
+  if (buffer[i - 1] == '.' && (i >= len)) {
+    // printf("!!!scientific buffer %s; len %c\n", buffer, len);
+    *s -= 1;
+    *count -= 1;
+    // add_char(s, '\0', count);
+  }
+
+  // printf("G_mode %d; float_ptr %lf; buffer %s; len %d; limit %d\n", G_mode,
+  //        float_ptr, buffer, len, limit);
+  for (; i < len && !G_mode; i++) {
     add_char(s, '0', count);
-    add_char(s, '.', count);
-    start++;
   }
   int was_a_discharge_upgrade = 0;
   if (buffer[0] == '1' && getFirstDigit((int)float_ptr) == 9) {
     was_a_discharge_upgrade = 1;
     tmp_count_zero++;
   }
-  for (; start < number_boundary - tmp_count_zero; start++)
-    add_char(s, '0', count);
-
   char *e_buffer =
       take_e_part(E, (int)float_ptr, was_a_discharge_upgrade, count_zero);
 
@@ -164,13 +262,35 @@ void add_prev_chars(const int offset, char **s, int *count, int len, char ch) {
 
 void offset_func(int count_start, Flags *flags, char **s, int *count) {
   int len = *count - count_start;
+  int len_was_down = 0;
+  // printf("1 len %d; count: %d; count_start: %d\n", len, *count, count_start);
 
+  if ((flags->need_pluse || flags->space || flags->below_zero) &&
+      ((flags->point > 0 && len - 1 < flags->point) ||
+       (flags->below_zero && flags->offset > 0 && len - 1 < flags->offset &&
+        flags->zero))) {
+    len_was_down = 1;
+    len--;
+  }
+  // printf("2 len %d; count: %d; count_start: %d\n", len, *count, count_start);
+  if (flags->zero && len < flags->offset) {
+    if (len_was_down) flags->offset--;
+    add_prev_chars(flags->offset, s, count, len, '0');
+    len = flags->offset;
+    // printf("offset: %d\n", flags->offset);
+    // if (len_was_down) {
+    //   len++;
+    //   flags->offset++;
+    //   len_was_down = 0;
+    // }
+  }
   if (len < flags->point && flags->point > 0) {
-    if (flags->need_pluse || flags->space) len--;
     add_prev_chars(flags->point, s, count, len, '0');
     len = flags->point;
+    // printf("len %d\n", len);
     if (flags->need_pluse || flags->space) len++;
     **s = '\0';
+    if (len_was_down) len++;
   }
   if (flags->minus) {
     while (len < flags->offset) {
@@ -183,9 +303,13 @@ void offset_func(int count_start, Flags *flags, char **s, int *count) {
       add_prev_chars(flags->offset, s, count, len, ' ');
       add_char(s, ' ', count);
     }
-  } else if (flags->zero && len < flags->offset) {
-    add_prev_chars(flags->offset, s, count, len, '0');
-  } else if ((flags->need_pluse || flags->space || flags->offset > 0) &&
-             len < flags->offset)
+  }
+  // else if (flags->zero && len < flags->offset) {
+  //   add_prev_chars(flags->offset, s, count, len, '0');
+  // }
+  else if ((flags->need_pluse || flags->space || flags->offset > 0) &&
+           len < flags->offset) {
+    // printf("flags->offset %d; len %d\n", flags->offset, len);
     add_prev_chars(flags->offset, s, count, len, ' ');
+  }
 }
