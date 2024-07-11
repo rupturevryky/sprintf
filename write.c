@@ -17,17 +17,20 @@ int write_int(char **s, va_list *args, int *count, Flags *flags,
               char specifer) {
   int int_ptr = va_arg(*args, int);
 
-  if (check_limits(int_ptr, flags, specifer)) return 1;
-
+  // printf("int_ptr %d; l %d; h %d\n", int_ptr, flags->l, flags->h);
+  if (check_int_limits(int_ptr, flags, specifer)) return 1;
   int count_start = *count;
   if (int_ptr < 0) {
-    int_ptr *= -1;
+    int_ptr = 0 - int_ptr;
     add_char(s, '-', count);
     flags->below_zero = 1;
   } else
     mathematical_flags(s, count, flags);
 
-  add_int(s, int_ptr, count);
+  if (int_ptr == INT_MIN)
+    add_string(s, "2147483648", count);
+  else
+    add_int(s, int_ptr, count);
 
   offset_func(count_start, flags, s, count);
   return 0;
@@ -37,36 +40,43 @@ int write_long_int(char **s, va_list *args, int *count, Flags *flags,
                    char specifer) {
   long int int_ptr = va_arg(*args, long int);
 
-  if (check_limits(int_ptr, flags, specifer)) return 1;
+  if (check_l_limits(int_ptr, flags->l, specifer)) return 1;
 
   int count_start = *count;
   if (int_ptr < 0) {
-    int_ptr *= -1;
+    int_ptr = 0 - int_ptr;
     add_char(s, '-', count);
     flags->below_zero = 1;
   } else
     mathematical_flags(s, count, flags);
 
-  add_int(s, int_ptr, count);
+  if (int_ptr == LONG_MIN)
+    add_string(s, "9223372036854775808", count);
+  else
+    add_int(s, int_ptr, count);
 
   offset_func(count_start, flags, s, count);
   return 0;
 }
+
 int write_long_long_int(char **s, va_list *args, int *count, Flags *flags,
                         char specifer) {
   long long int int_ptr = va_arg(*args, long long int);
 
-  if (check_limits(int_ptr, flags, specifer)) return 1;
+  if (check_ll_limits(int_ptr, flags->l, specifer)) return 1;
 
   int count_start = *count;
   if (int_ptr < 0) {
-    int_ptr *= -1;
+    int_ptr = 0 - int_ptr;
     add_char(s, '-', count);
     flags->below_zero = 1;
   } else
     mathematical_flags(s, count, flags);
 
-  add_int(s, int_ptr, count);
+  if (int_ptr == LLONG_MIN)
+    add_string(s, "9223372036854775808", count);
+  else
+    add_int(s, int_ptr, count);
 
   offset_func(count_start, flags, s, count);
   return 0;
@@ -85,7 +95,6 @@ int write_scientific_notation(char **s, va_list *args, int *count, char E,
   char buffer[17];
   gcvt(float_ptr, 17, buffer);
   int end_ints = flags->point > -1 ? flags->point : 6;
-  // printf("flags->point %d\n", flags->point);
   int tmp_count_zero = 0, count_zero = zero_count_for_scientific(
                               &float_ptr, buffer, &tmp_count_zero, flags);
   int len_without_zero = 0;
@@ -102,11 +111,12 @@ int write_scientific_notation(char **s, va_list *args, int *count, char E,
   for (int i = shift; i <= (int)strlen(buffer); i++) {
     buffer[i - shift] = buffer[i];
   }
+  // printf("flags->point %d; buffer %s\n", flags->point, buffer);
 
   rounding_all_fractional(buffer, tmp_count_zero, &count_zero,
                           len_without_zero);
-  // printf("scientific_notatio buffer %s\n", buffer);
   char *new_buffer = set_scientific_point(buffer);
+  // printf("scientific_notation buffer %s\n", new_buffer);
   write_ready_scientific_num(s, count, new_buffer, count_zero, float_ptr, E,
                              end_ints, 0);
   offset_func(count_start, flags, s, count);
@@ -216,13 +226,13 @@ void write_shortest_representation(char **s, va_list *args, int *count,
   int len_of_int = take_len_of_int((int)float_ptr, 5) + was_greade;
   // printf(
   //     "~~start buffer: %s; count_zero %d; tmp_count_zero %d;"
-  //     "len_without_zero %d; len %d; float_ptr %lf: len_of_int %d:
-  //     flags->point "
-  //     "%d\n",
+  //     "len_without_zero %d; len %d; float_ptr %lf: len_of_int %d: "
+  //     "flags->point %d\n",
   //     buffer, count_zero, tmp_count_zero, len_without_zero, len, float_ptr,
   //     len_of_int, flags->point);
   if ((float_ptr < 0.0001 && float_ptr != 0.) ||
-      (len_of_int >= len && (flags->point > 0 || len < len_of_int) &&
+      (len_of_int >= len &&
+       ((flags->point > 0 && len < len_of_int) || len < len_of_int) &&
        len_of_int != 1)) {
     int count_zero_in_scintific = 0;
     was_greade += rounding_all_fractional(buffer_2, tmp_count_zero,
@@ -291,12 +301,12 @@ int write_string(char **s, va_list *args, int *count, Flags *flags) {
 }
 
 int write_unsigned_octal(char **s, va_list *args, int *count, Flags *flags) {
-  unsigned long decimalNumber = va_arg(*args, unsigned long);
-  if (check_limits(decimalNumber, flags, 'o')) return 1;
+  unsigned long long decimalNumber = va_arg(*args, unsigned long long);
+  if (check_unsigned_limits(decimalNumber, flags, 'o')) return 1;
   int count_start = *count;
 
-  if ((long long int)decimalNumber < 0)
-    return directive_writing_more_bytes_error();
+  // if ((long long int)decimalNumber < 0)
+  //   return directive_writing_more_bytes_error();
 
   if (decimalNumber == 0) {
     char ch = '0';
@@ -322,12 +332,12 @@ int write_unsigned_octal(char **s, va_list *args, int *count, Flags *flags) {
 }
 
 int write_unsigned_int(char **s, va_list *args, int *count, Flags *flags) {
-  unsigned long uns_long = va_arg(*args, unsigned long);
-  if (check_limits(uns_long, flags, 'u')) return 1;
+  unsigned long long uns_long = va_arg(*args, unsigned long long);
+  if (check_unsigned_limits(uns_long, flags, 'u')) return 1;
   int count_start = *count;
 
-  if (uns_long > 2147483647)
-    return argument_is_of_type_error("unsigned int", 'u');
+  // if (uns_long > 2147483647)
+  //   return argument_is_of_type_error("unsigned int", 'u');
 
   add_int(s, uns_long, count);
   offset_func(count_start, flags, s, count);
@@ -336,8 +346,8 @@ int write_unsigned_int(char **s, va_list *args, int *count, Flags *flags) {
 
 int write_unsigned_hexadecimal_integer(char **s, va_list *args, int *count,
                                        char mode, Flags *flags) {
-  unsigned long num = va_arg(*args, unsigned long);
-  if (check_limits(num, flags, mode)) return 1;
+  unsigned long long num = va_arg(*args, unsigned long long);
+  if (check_unsigned_limits(num, flags, mode)) return 1;
   int count_start = *count;
   char *buffer = decimal_to_hex(num, mode);
 

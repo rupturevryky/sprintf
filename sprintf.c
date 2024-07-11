@@ -70,31 +70,50 @@ int s21_sprintf(char *str, const char *test_3_format, ...) {
 }
 
 int main() {
-  int num = 0;
+  // int num = 0;
   // int num = 1;
   // int num = 12;
   // int num = 999;
   // int num = 1234;
   // int num = -1;
-  // int num = 2147483648;
   // int num = -12;
   // int num = -999;
   // int num = -1234;
   // int num = -12345;
   // int num = -123456;
-  // int num = -1234567;
+  int num = -1234567;
 
-  long int lnum = 0;
-  // long int lnum = 1;
-  // long int lnum = 12;
-  // long int lnum = 123;
-  // long int lnum = 2247483648;
-  // long int lnum = 9223372036854775807;
-  // long int lnum = -1;
-  // long int lnum = -12;
-  // long int lnum = -123;
-  // long int lnum = -2247483648;
-  // long int lnum = -9223372036854775807;
+  // long int lnum = 0;
+  // long int lnum = 1234;
+  // long int lnum = 9223372036854775807LL;
+  long int lnum = -9223372036854775807L - 1L;
+
+  // long int llnum = 0;
+  // long int llnum = 1234;
+  // long int llnum = 9223372036854775807LL;
+  long int llnum = -9223372036854775807LL - 1LL;
+
+  // short hnum = 0;
+  // short hnum = 32767;
+  // short hnum = -32767 - 1;
+  short hnum = 32768;
+
+  // unsigned int u = 0;
+  // unsigned int u = 1;
+  // unsigned int u = 12;
+  // unsigned int u = 123;
+  // unsigned int u = 9987;
+  // unsigned int u = 99875459;
+  unsigned int u = 2147483647 * 2U + 1U;
+
+  // unsigned long ul = 0;
+  // unsigned long ul = 2147483647 * 2U + 1U;
+  unsigned long ul = 9223372036854775807L * 2UL + 1UL;
+
+  // unsigned long long ull = 0;
+  // unsigned long long ull = 2147483647 * 2U + 1U;
+  // unsigned long long ull = 9223372036854775807L * 2UL + 1UL;
+  unsigned long long ull = 9223372036854775807LL * 2ULL + 1ULL;
 
   // float fl = 0.12341;
   // float fl = 0.012341;
@@ -113,47 +132,24 @@ int main() {
   // float fl = -1.012341;
   float fl = -123.12345;
 
-  double e = 1.1234;
-  // double e = 0.1234567890123;
-  // double e = 0.12;
-  // double e = 0.012;
-  // double e = 0.00012;
-  // double e = 99912355.122349998;
-  // double e = 0.00000000000000123456789123456789;
-  // double e = 9.99999998;
-  // double e = 99.999999999999;
-  // double e = 0.00000123456789;
-  // double e = 0.000000000000123456989123456789;
-
-  double g = 0.;
-  // double g = 1.;
-  // double g = 9.99999998;
-  // double g = 0.12;
-  // double g = 0.121234566789012334;
-  // double g = 0.00000593458789;
-  // double g = 0.00000500000093458789;
-  // double g = 0.00012;
-  // double g = 9912345.122349998;
-
-  long int octal = 12;
-  // long int octal = 123;
-  // long int octal = 1234;
-  // long int octal = 12345;
-  // long int octal = 2247483648;
-  // long int octal = 0;
-
-  unsigned int u = 0;
-  // unsigned int u = 1;
-  // unsigned int u = 12;
-  // unsigned int u = 123;
-  // unsigned int u = 32767;
-
-  unsigned int x = 0;
-  // unsigned int x = 1;
-  // unsigned int x = 123;
-  // unsigned int x = 12345;
-  // unsigned int x = 12345678;
-  // unsigned int x = 123456789;
+  // double eg = 0.;
+  // double eg = 1.;
+  // double eg = 1.1234;
+  // double eg = 0.1234567890123;
+  // double eg = 0.12;
+  // double eg = 0.012;
+  // double eg = 0.00012;
+  // double eg = 0.121234566789012334;
+  // double eg = 0.00012;
+  // double eg = 0.00000593458789;
+  // double eg = 9912345.122349998;
+  // double eg = 99912355.122349998;
+  // double eg = 0.00000500000093458789;
+  // double eg = 0.00000000000000123456789123456789;
+  // double eg = 9.99999998;
+  // double eg = 99.999999999999;
+  // double eg = 0.00000123456789;
+  double eg = 0.000000000000123456989123456789;
 
   int s21_count = 0;
   int my_s21_count = 0;
@@ -192,9 +188,12 @@ int main() {
       "7:|%.2f|; 8:|%02.2e|; 9:|%.2e|";
   const char *test_7_format =
       "1:|%+7.4g|; 2:|%+5.4G|; 3:|%-5.4g|; 4:|%+ .10g|; 5:|%.10g|; 6:|%.1g|; "
-      "7:|%.0g|; 8:|%.G|;";
+      "7:|%.0g|; 8:|%.G|; 9:|%*.*g|;";
   const char *test_8_format =
       "1:|%.4s|; 2:|%6.5s|; 3:|%.6s|; 4:|%.e|; 5:|%.1e|; 6:|%.0e|; 7:|%e|;";
+  const char *test_9_format =
+      "1:|%ld|; 2:|%lld|; 3:|%lo|; 4:|%llo|; 5:|%lu|; 6:|%llu|; 7:|%lx|;; "
+      "7:|%llx|; 7:|%lX|; 8:|%hi|;";
   // test 0
   int s21_co =
       s21_sprintf(s21_input, test_0_format, num, num, num, num, num, num, fl);
@@ -218,9 +217,9 @@ int main() {
   }
   test_number++;
   // test 2
-  s21_co = s21_sprintf(s21_input, test_2_format, fl, fl, fl, octal);
+  s21_co = s21_sprintf(s21_input, test_2_format, fl, fl, fl, u);
   // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
-  co = sprintf(input, test_2_format, fl, fl, fl, octal);
+  co = sprintf(input, test_2_format, fl, fl, fl, u);
   // printf("    input: %s; co: %d\n", input, co);
   if (strcmp(s21_input, input) != 0 || co != s21_co) {
     success = 0;
@@ -229,10 +228,10 @@ int main() {
   test_number++;
   printf("--------------\n");
   // test 3
-  s21_co = s21_sprintf(s21_input, test_3_format, num, ch, fl, str, e, g, octal,
-                       u, x, x, &my_s21_count, &str, num, num, fl, fl);
+  s21_co = s21_sprintf(s21_input, test_3_format, num, ch, fl, str, eg, eg, u, u,
+                       u, u, &my_s21_count, &str, num, num, fl, fl);
   // printf("s21_input: %s; s21_co: %d\n", s21_input, s21_co);
-  co = sprintf(input, test_3_format, num, ch, fl, str, e, g, octal, u, x, x,
+  co = sprintf(input, test_3_format, num, ch, fl, str, eg, eg, u, u, u, u,
                &s21_count, &str, num, num, fl, fl);
   // printf("    input: %s; co: %d\n", input, co);
   if (strcmp(s21_input, input) != 0 || co != s21_co ||
@@ -244,10 +243,10 @@ int main() {
   printf("--------------\n");
   // test 4
   s21_co =
-      s21_sprintf(s21_input, test_4_format, lnum, u, my_s21_count, count, u, x);
+      s21_sprintf(s21_input, test_4_format, lnum, u, my_s21_count, count, u, u);
   // printf("s21_input: %s; s21_count: %d; co: %d\n", s21_input, s21_count,
   //  s21_co);
-  co = sprintf(input, test_4_format, lnum, u, s21_count, count, u, x);
+  co = sprintf(input, test_4_format, lnum, u, s21_count, count, u, u);
   // printf("    input: %s; co: %d\n", input, co);
   if (strcmp(s21_input, input) != 0 || co != s21_co ||
       s21_count != my_s21_count) {
@@ -270,9 +269,10 @@ int main() {
   printf("--------------\n");
   // test 6
   s21_co = s21_sprintf(s21_input, test_6_format, num, num, num, num, 2, num,
-                       num, fl, e, e);
+                       num, fl, eg, eg);
   // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
-  co = sprintf(input, test_6_format, num, num, num, num, 2, num, num, fl, e, e);
+  co = sprintf(input, test_6_format, num, num, num, num, 2, num, num, fl, eg,
+               eg);
   // printf("    input: %s; co: %d\n", input, co);
   if (strcmp(s21_input, input) != 0 || co != s21_co) {
     printf("test_number: %d\n", test_number);
@@ -281,9 +281,10 @@ int main() {
   test_number++;
   printf("--------------\n");
   // test 7
-  s21_co = s21_sprintf(s21_input, test_7_format, fl, e, g, fl, e, g, fl, e);
+  s21_co = s21_sprintf(s21_input, test_7_format, fl, eg, eg, fl, eg, eg, fl, eg,
+                       15, 3, eg);
   // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
-  co = sprintf(input, test_7_format, fl, e, g, fl, e, g, fl, e);
+  co = sprintf(input, test_7_format, fl, eg, eg, fl, eg, eg, fl, eg, 15, 3, eg);
   // printf("    input: %s; co: %d\n", input, co);
   if (strcmp(s21_input, input) != 0 || co != s21_co) {
     printf("test_number: %d\n", test_number);
@@ -296,6 +297,19 @@ int main() {
                        123.456);
   // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
   co = sprintf(input, test_8_format, str, str, str, 0.1, 0.01, 0.01, 123.456);
+  // printf("    input: %s; co: %d\n", input, co);
+  if (strcmp(s21_input, input) != 0 || co != s21_co) {
+    printf("test_number: %d\n", test_number);
+    success = 0;
+  }
+  test_number++;
+  printf("--------------\n");
+  // test 9
+  s21_co = s21_sprintf(s21_input, test_9_format, lnum, llnum, ul, ull, ul, ull,
+                       ul, ull, ul, hnum);
+  // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
+  co = sprintf(input, test_9_format, lnum, llnum, ul, ull, ul, ull, ul, ull, ul,
+               hnum);
   // printf("    input: %s; co: %d\n", input, co);
   if (strcmp(s21_input, input) != 0 || co != s21_co) {
     printf("test_number: %d\n", test_number);

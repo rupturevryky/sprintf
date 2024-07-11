@@ -14,15 +14,14 @@ void mathematical_flags(char **s, int *count, Flags *flags) {
     add_char(s, ' ', count);
 }
 
-void add_int(char **s, long long int int_ptr, int *count) {
+void add_int(char **s, unsigned long long int_ptr, int *count) {
   int first_digit = getFirstDigit(int_ptr);
   int i = take_len_of_int(int_ptr, 5);
-  // printf("i %d\n", i);
   for (; i > 0; i--) {
     add_char(s, first_digit + '0', count);
-
     if (i != 0) {
       int_ptr %= increase_discharge(i);
+
       first_digit = getFirstDigit(int_ptr);
       while (i > take_len_of_int(int_ptr, 5) + 1) {
         add_char(s, '0', count);
@@ -49,8 +48,9 @@ void clear_ending_zeros(char *float_string, int len, int int_len,
       break;
   }
 
-  if (i > int_len + len) i = int_len + len + prev_zero_count;
-  // printf("2 float_string %s; i %d\n", float_string, i);
+  i = int_len + len + prev_zero_count;
+  // printf("2 float_string %s; i %d; prev_zero_count %d\n", float_string, i,
+  //        prev_zero_count);
   for (; i >= int_len && i > 0; i--) {
     if (float_string[i] == '0') {
       float_string[i] = '\0';
@@ -73,12 +73,15 @@ void clear_ending_zeros(char *float_string, int len, int int_len,
       //     "float_string[%d] %c; zero_count %d; point_index %d; "
       //     "start % d\n ",
       //     i, float_string[i], zero_count, point_index, start);
-      if (zero_count > 4) break;
+      if (zero_count + int_len >= len) break;
     } else if (zero_count > 0 ||
                (point_index > 0 && start != -1 && float_string[j] != '.'))
       zero_count = -1;
   }
   if (zero_count > 4) float_string[point_index] = '\0';
+  // printf("4 float_string %s; i %d; start %d; ; zero_count %d\n",
+  // float_string,
+  //        i, start, zero_count);
   for (int j = 0; float_string[j] != '\0'; j++) i = j;
   while ((float_string[i] == '0' || float_string[i] == '.') &&
          i >= point_index && i > 0) {
@@ -89,9 +92,9 @@ void clear_ending_zeros(char *float_string, int len, int int_len,
     float_string[i] = '\0';
     i--;
   }
-  // printf("4 float_string %s; i %d; start %d; ; zero_count %d\n",
+  // printf("5 float_string %s; i %d; start %d; ; zero_count %d\n",
   // float_string,
-  //  i, start, zero_count);
+  //        i, start, zero_count);
 
   i = prev_zero_count + len;
   for (; i >= int_len && i > 0; i--) {
@@ -103,6 +106,15 @@ void clear_ending_zeros(char *float_string, int len, int int_len,
   // printf("5 float_string %s\n", float_string);
 }
 void delate_point(char *arr) {
+  if (arr[0] == '-') {
+    printf("minus\n");
+    int length = strlen(arr);
+    for (int i = 0; i < length - 1; i++) {
+      arr[i] = arr[i + 1];
+    }
+    arr[length - 1] = '\0';
+  }
+
   int i = 0;
   for (; arr[i] != '\0' && arr[i] != '\n'; i++) {
     if (arr[i + 1] < 46 || arr[i + 1] > 57) {
@@ -206,11 +218,21 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
     // printf("!!!scientific buffer %s; len %c\n", buffer, len);
     *s -= 1;
     *count -= 1;
-    // add_char(s, '\0', count);
   }
 
-  // printf("G_mode %d; float_ptr %lf; buffer %s; len %d; limit %d\n", G_mode,
-  //        float_ptr, buffer, len, limit);
+  // printf("G_mode %d; float_ptr %lf; buffer %s; i %d,len %d; limit %d\n",
+  // G_mode,
+  //        float_ptr, buffer, i, len, limit);
+
+  if (i < len && !G_mode && float_ptr == 0) {
+    add_char(s, '0', count);
+    i++;
+    if (i + 1 < len) {
+      add_char(s, '.', count);
+      i++;
+    }
+  }
+
   for (; i < len && !G_mode; i++) {
     add_char(s, '0', count);
   }
@@ -220,7 +242,9 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
     tmp_count_zero++;
   }
   char *e_buffer =
-      take_e_part(E, (int)float_ptr, was_a_discharge_upgrade, count_zero);
+      buffer[0] == '\0'
+          ? "e+00"
+          : take_e_part(E, (int)float_ptr, was_a_discharge_upgrade, count_zero);
 
   add_string(s, e_buffer, count);
 }

@@ -9,20 +9,21 @@ int str_to_int(char *num) {
   return res;
 }
 
-int min(int A, int B) { return A >= B ? B : A; }
+// int min(int A, int B) { return A >= B ? B : A; }
 
-long long int increase_discharge(int exp) {
+unsigned long long increase_discharge(int exp) {
   if (exp == 0) return 0;
-  if (exp == 19) return 999999999999999999 + 1;
-  long long int base = 1;
+  if (exp == 20) return 10000000000000000000ULL;
+
+  unsigned long long base = 1;
   for (int i = 1; i < exp; i++) base *= 10;
   return base;
 }
 
-int take_len_of_int(long long int num, int now) {
-  if (num > 999999999999999999) return 19;
+int take_len_of_int(unsigned long long num, int now) {
+  if (num > 10000000000000000000ULL - 1) return 20;
   if (num == 0) return 1;
-  long long int max_now = increase_discharge(now);
+  unsigned long long max_now = increase_discharge(now);
   if (num < max_now && num >= increase_discharge(now - 1)) return now - 1;
 
   if (num > max_now) return take_len_of_int(num, now + 1);
@@ -31,7 +32,7 @@ int take_len_of_int(long long int num, int now) {
   return now;
 }
 
-int getFirstDigit(long long int number) {
+int getFirstDigit(unsigned long long number) {
   while (number >= 10) {
     number /= 10;
   }
