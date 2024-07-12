@@ -37,7 +37,6 @@ void add_string(char **s, char *str, int *count) {
 
 void clear_ending_zeros(char *float_string, int len, int int_len,
                         int prev_zero_count) {
-  // printf("1 float_string %s\n", float_string);
   if (len == 0) len = 1;
 
   int i = strlen(float_string) - 1;
@@ -49,8 +48,6 @@ void clear_ending_zeros(char *float_string, int len, int int_len,
   }
 
   i = int_len + len + prev_zero_count;
-  // printf("2 float_string %s; i %d; prev_zero_count %d\n", float_string, i,
-  //        prev_zero_count);
   for (; i >= int_len && i > 0; i--) {
     if (float_string[i] == '0') {
       float_string[i] = '\0';
@@ -61,7 +58,6 @@ void clear_ending_zeros(char *float_string, int len, int int_len,
     } else
       break;
   }
-  // printf("3 float_string %s; i %d\n", float_string, i);
   int point_index = -1, start = -1, zero_count = 0;
   for (int j = 0; float_string[j] != '\0'; j++) {
     if (float_string[j] == '.') point_index = j;
@@ -69,32 +65,18 @@ void clear_ending_zeros(char *float_string, int len, int int_len,
     if (start != -1 && zero_count != -1 && point_index > 0 &&
         float_string[j] == '0') {
       zero_count++;
-      // printf(
-      //     "float_string[%d] %c; zero_count %d; point_index %d; "
-      //     "start % d\n ",
-      //     i, float_string[i], zero_count, point_index, start);
       if (zero_count + int_len >= len) break;
     } else if (zero_count > 0 ||
                (point_index > 0 && start != -1 && float_string[j] != '.'))
       zero_count = -1;
   }
   if (zero_count > 4) float_string[point_index] = '\0';
-  // printf("4 float_string %s; i %d; start %d; ; zero_count %d\n",
-  // float_string,
-  //        i, start, zero_count);
   for (int j = 0; float_string[j] != '\0'; j++) i = j;
   while ((float_string[i] == '0' || float_string[i] == '.') &&
          i >= point_index && i > 0) {
-    // printf(
-    //     "float_string[%d] %c; zero_count %d; point_index %d; "
-    //     "start % d\n ",
-    //     i, float_string[i], zero_count, point_index, start);
     float_string[i] = '\0';
     i--;
   }
-  // printf("5 float_string %s; i %d; start %d; ; zero_count %d\n",
-  // float_string,
-  //        i, start, zero_count);
 
   i = prev_zero_count + len;
   for (; i >= int_len && i > 0; i--) {
@@ -103,7 +85,6 @@ void clear_ending_zeros(char *float_string, int len, int int_len,
     else
       break;
   }
-  // printf("5 float_string %s\n", float_string);
 }
 void delate_point(char *arr) {
   if (arr[0] == '-') {
@@ -164,7 +145,6 @@ char *take_e_part(char E, int num, int was_a_discharge_upgrade,
 }
 
 char *set_point(char *float_arr, int len_of_int) {
-  // printf("my float_arr %s\n", float_arr);
   int length = strlen(float_arr);
   static char new_str[50];
   for (int i = 0, j = 0; i < length; i++, j++) {
@@ -175,8 +155,6 @@ char *set_point(char *float_arr, int len_of_int) {
     new_str[j] = float_arr[i];
     new_str[j + 1] = '\0';
   }
-  // new_str[length + 1] = '\0';
-  // printf("my new_str %s\n", new_str);
   return new_str;
 }
 
@@ -195,16 +173,18 @@ char *set_scientific_point(char *scientific_num) {
     }
   }
   tmp[j] = '\0';
-  // printf("scientific_notatio scientific_num %s\n", tmp);
   return tmp;
 }
 
 void write_ready_scientific_num(char **s, int *count, char *buffer,
                                 int count_zero, double float_ptr, char E,
                                 int len, int G_mode) {
+  if (buffer[0] == 'i') {
+    add_string(s, "inf", count);
+    return;
+  }
   int tmp_count_zero = count_zero;
   if ((int)strlen(buffer) - 1 == 8 && 6 + count_zero >= 11) tmp_count_zero = 0;
-
   len += E == 'E' || E == 'e' ? 2 : 1;
   int limit = 0, was_point = 0;
   int i = 0;
@@ -215,14 +195,9 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
     if (buffer[i] == '.') was_point = 1;
   }
   if (buffer[i - 1] == '.' && (i >= len)) {
-    // printf("!!!scientific buffer %s; len %c\n", buffer, len);
     *s -= 1;
     *count -= 1;
   }
-
-  // printf("G_mode %d; float_ptr %lf; buffer %s; i %d,len %d; limit %d\n",
-  // G_mode,
-  //        float_ptr, buffer, i, len, limit);
 
   if (i < len && !G_mode && float_ptr == 0) {
     add_char(s, '0', count);
@@ -243,7 +218,7 @@ void write_ready_scientific_num(char **s, int *count, char *buffer,
   }
   char *e_buffer =
       buffer[0] == '\0'
-          ? "e+00"
+          ? E == 'E' ? "E+00" : "e+00"
           : take_e_part(E, (int)float_ptr, was_a_discharge_upgrade, count_zero);
 
   add_string(s, e_buffer, count);
@@ -287,7 +262,6 @@ void add_prev_chars(const int offset, char **s, int *count, int len, char ch) {
 void offset_func(int count_start, Flags *flags, char **s, int *count) {
   int len = *count - count_start;
   int len_was_down = 0;
-  // printf("1 len %d; count: %d; count_start: %d\n", len, *count, count_start);
 
   if ((flags->need_pluse || flags->space || flags->below_zero) &&
       ((flags->point > 0 && len - 1 < flags->point) ||
@@ -296,22 +270,14 @@ void offset_func(int count_start, Flags *flags, char **s, int *count) {
     len_was_down = 1;
     len--;
   }
-  // printf("2 len %d; count: %d; count_start: %d\n", len, *count, count_start);
   if (flags->zero && len < flags->offset) {
     if (len_was_down) flags->offset--;
     add_prev_chars(flags->offset, s, count, len, '0');
     len = flags->offset;
-    // printf("offset: %d\n", flags->offset);
-    // if (len_was_down) {
-    //   len++;
-    //   flags->offset++;
-    //   len_was_down = 0;
-    // }
   }
   if (len < flags->point && flags->point > 0) {
     add_prev_chars(flags->point, s, count, len, '0');
     len = flags->point;
-    // printf("len %d\n", len);
     if (flags->need_pluse || flags->space) len++;
     **s = '\0';
     if (len_was_down) len++;
@@ -327,13 +293,78 @@ void offset_func(int count_start, Flags *flags, char **s, int *count) {
       add_prev_chars(flags->offset, s, count, len, ' ');
       add_char(s, ' ', count);
     }
-  }
-  // else if (flags->zero && len < flags->offset) {
-  //   add_prev_chars(flags->offset, s, count, len, '0');
-  // }
-  else if ((flags->need_pluse || flags->space || flags->offset > 0) &&
-           len < flags->offset) {
-    // printf("flags->offset %d; len %d\n", flags->offset, len);
+  } else if ((flags->need_pluse || flags->space || flags->offset > 0) &&
+             len < flags->offset) {
     add_prev_chars(flags->offset, s, count, len, ' ');
   }
+}
+
+void add_float(int end_ints, char *buffer, char **s, int *count) {
+  int limit = -1;
+  int i = 0;
+  for (; buffer[i] != '\0' && limit <= end_ints; i++) {
+    if (limit != -1 || buffer[i] == '.') limit++;
+    add_char(s, buffer[i], count);
+    if (limit >= end_ints) break;
+  }
+  if (limit + 1 <= end_ints - 1 && limit == -1) {
+    limit++;
+    add_char(s, '.', count);
+  }
+  for (; limit <= end_ints - 1; limit++) add_char(s, '0', count);
+}
+
+int add_shortest_representation(char *buffer, int len_of_int, int *count_zero,
+                                int *len, int *limit, char **s, int *count) {
+  char *new_buffer = set_point(buffer, len_of_int);
+  int tmp_count_zero = (new_buffer[0] - 0 == 0 && len_of_int == 1)
+                           ? *count_zero - 1
+                           : *count_zero;
+  if (new_buffer[0] - 0 == 0 && len_of_int == 1) *count_zero -= 1;
+  clear_ending_zeros(new_buffer, *len, len_of_int, tmp_count_zero);
+  int time_to_count = 0, wasnt_point = 1;
+  for (int i = 0;
+       new_buffer[i] != '\0' && *limit < *len &&
+       ((new_buffer[i] > 47 && new_buffer[i] < 58) || new_buffer[i] == '.');
+       i++) {
+    if (new_buffer[i] != '0' && new_buffer[i] != '.') time_to_count = 1;
+    if (time_to_count && new_buffer[i] != '.') *limit += 1;
+    add_char(s, new_buffer[i], count);
+    if (new_buffer[i] == '.') wasnt_point = 0;
+  }
+  if (*len == 0) *len = 1;
+  return wasnt_point;
+}
+
+char *repeat_arr_for_shortest_representation(char *buffer) {
+  static char buffer_2[17];
+  int i = 0;
+  for (; buffer[i] != '\0'; i++) buffer_2[i] = buffer[i];
+  buffer_2[i] = '\0';
+  return buffer_2;
+}
+
+int len_w_z_for_s_rep(int len, int limit, char *buffer) {
+  int len_without_zero = limit, tmp_time_to_count = 0;
+  for (int i = 0; buffer[i] != '\0' && len_without_zero < len; i++) {
+    if (buffer[i] != '0') tmp_time_to_count = 1;
+    if (tmp_time_to_count) len_without_zero++;
+  }
+  return len_without_zero;
+}
+
+int sientific_if(int len_of_int, int len, int point) {
+  return (len_of_int >= len &&
+          ((point > 0 && len < len_of_int) || len < len_of_int) &&
+          len_of_int != 1);
+}
+
+char *make_ready_arr(int *was_greade, char *buffer_2, int tmp_count_zero,
+                     int len, int len_of_int) {
+  int count_zero_in_scintific = 0;
+  *was_greade += rounding_all_fractional(buffer_2, tmp_count_zero,
+                                         &count_zero_in_scintific, len - 1);
+  char *new_buffer = set_scientific_point(buffer_2);
+  clear_ending_zeros(new_buffer, len, len_of_int, count_zero_in_scintific);
+  return new_buffer;
 }

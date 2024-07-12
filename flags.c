@@ -25,35 +25,31 @@ int take_len(const char **f, Flags *flags, int without_check) {
 
 int take_flags(const char **f, Flags *flags, int res, va_list *args) {
   if (!flags->offset) flags->offset = take_len(f, flags, 0);
-  switch (**f) {
+  char ch = **f;
+  switch (ch) {
     case '-':
       if (flags->minus == 1) return repeated_error(**f);
       *f += 1;
       flags->minus = 1;
-      res = take_flags(f, flags, res, args);
       break;
     case '+':
       if (flags->need_pluse == 1) return repeated_error(**f);
       *f += 1;
       flags->need_pluse = 1;
-      res = take_flags(f, flags, res, args);
       break;
     case ' ':
       if (flags->space == 1) return repeated_error(**f);
       *f += 1;
       flags->space = 1;
-      res = take_flags(f, flags, res, args);
       break;
     case '0':
       if (flag_zero(f, flags)) return 1;
-      res = take_flags(f, flags, res, args);
       break;
     case '*':
       if (flags->star == 1) return repeated_error(**f);
       *f += 1;
       flags->star = 1;
       flags->offset = va_arg(*args, int);
-      res = take_flags(f, flags, res, args);
       break;
     case '.':
       if (flags->point > 0) return repeated_error(**f);
@@ -63,19 +59,19 @@ int take_flags(const char **f, Flags *flags, int res, va_list *args) {
         flags->point = va_arg(*args, int);
       } else
         flags->point = take_len(f, flags, 1);
-      // printf("take_len %d\n", flags->point);
-      res = take_flags(f, flags, res, args);
       break;
     case '#':
       if (flags->grid > 0) return repeated_error(**f);
       *f += 1;
       flags->grid = 1;
-      res = take_flags(f, flags, res, args);
       break;
     default:
       if (!flags->offset) flags->offset = take_len(f, flags, 0);
       break;
   }
+  if (ch == '-' || ch == '+' || ch == ' ' || ch == '0' || ch == '*' ||
+      ch == '.' || ch == '#')
+    res = take_flags(f, flags, res, args);
   return res;
 }
 
@@ -99,8 +95,7 @@ int length_description(const char **f, Flags *flags) {
       return length_modifier_error('l', **f);
     flags->l += 1;
   } else if (ch == 'L') {
-    if ((**f != 'e' && **f != 'E' && **f != 'f' && **f != 'g' && **f != 'G') ||
-        flags->l != 0 || flags->h != 0)
+    if (**f != 'e' && **f != 'E' && **f != 'f' && **f != 'g' && **f != 'G')
       return length_modifier_error('h', **f);
     flags->L += 1;
   }

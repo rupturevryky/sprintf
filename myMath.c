@@ -8,9 +8,6 @@ int str_to_int(char *num) {
   }
   return res;
 }
-
-// int min(int A, int B) { return A >= B ? B : A; }
-
 unsigned long long increase_discharge(int exp) {
   if (exp == 0) return 0;
   if (exp == 20) return 10000000000000000000ULL;
@@ -62,12 +59,6 @@ int digit_down(int *num, int *tpm_len, int *len, int E, int *count, char **s,
 }
 
 int take_zero_count(double *float_ptr, int is_long, Flags *flags) {
-  // if (*float_ptr < 0) {
-  //   *float_ptr = 0 - *float_ptr;
-  //   add_char(s, '-', count);
-  //   flags->below_zero = 1;
-  // } else
-  //   mathematical_flags(s, count, flags);
   if (*float_ptr == 0.) return flags->point > -1 ? flags->point : 6;
   int count_fractional_zero = 0;
   while (1) {
@@ -115,8 +106,6 @@ int rounding_all_fractional(char *float_arr, int count_zero,
   int number_boundary = len - 1;
   if (float_arr[0] == '0' && count_zero > 1) number_boundary += count_zero - 1;
   if (number_boundary < 0) number_boundary = -1;
-  // printf("1 float_arr %s; number_boundary %d; len %d; count_zero %d\n",
-  //        float_arr, number_boundary, len, count_zero);
 
   int i = strlen(float_arr) - 2;
   char prev_char = float_arr[i + 1], now_char = '0';
@@ -126,7 +115,6 @@ int rounding_all_fractional(char *float_arr, int count_zero,
     if (prev_char == '4') now_char = float_arr[i];
 
     if (float_arr[i + 1] == 'l') float_arr[i + 1] = '0';
-    // if (i == 1) printf("float_arr[%d] %c\n", i, float_arr[i]);
     if (now_char != 'l') {
       prev_char = float_arr[i];
       float_arr[i] = now_char;
@@ -139,8 +127,6 @@ int rounding_all_fractional(char *float_arr, int count_zero,
       i--;
     }
   }
-  // printf("2 float_arr %s\n", float_arr);
-
   i++;
   int tmp_first_char = float_arr[0];
   while (i > 0 && float_arr[i] == 'l') {
@@ -156,10 +142,8 @@ int rounding_all_fractional(char *float_arr, int count_zero,
     float_arr[0] = '0';
     memmove(float_arr + 1, float_arr, strlen(float_arr) - 1);
     float_arr[0] = '1';
-    // printf("4 float_arr %s\n", float_arr);
     return 1;
   }
-  // printf("3 float_arr %s\n", float_arr);
   return 0;
 }
 

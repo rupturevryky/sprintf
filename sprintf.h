@@ -38,6 +38,7 @@ void reverse_arr(char *arr);
 #ifndef MYMATH
 #define MYMATH
 
+#include <float.h>
 #include <math.h>
 void mathematical_flags(char **s, int *count, Flags *flags);
 #include "myMath.c"

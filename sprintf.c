@@ -5,11 +5,6 @@ int write(const char **f, char **s, va_list *args, int *count) {
   if (take_flags(f, &flags, 0, args)) return 1;
   if (check_errors(**f, &flags)) return 1;
   if (length_description(f, &flags)) return 1;
-  // printf(
-  //     "minus:%d, need_pluse:%d, offset:%d, space:%d, zero:%d, star:%d, l:%d,
-  //     L:%d, h:%d\n", flags.minus, flags.need_pluse,
-  //     flags.offset, flags.space, flags.zero, flags.star, flags.l, flags.L,
-  //     flags.h);
 
   if (**f == 'c') {
     if (write_char(s, args, count, &flags)) return 1;
@@ -62,7 +57,6 @@ int s21_sprintf(char *str, const char *test_3_format, ...) {
       add_char(&s, *f, &count);
       f++;
     }
-    // printf("%s\n", str);
   }
   va_end(now_arg);
   if (res) exit(1);
@@ -115,6 +109,9 @@ int main() {
   // unsigned long long ull = 9223372036854775807L * 2UL + 1UL;
   unsigned long long ull = 9223372036854775807LL * 2ULL + 1ULL;
 
+  // float fl = 0.;
+  // float fl = 1.;
+  // float fl = 999.;
   // float fl = 0.12341;
   // float fl = 0.012341;
   // float fl = 0.0012341;
@@ -130,7 +127,8 @@ int main() {
   // float fl = -0.000012345;
   // float fl = -0.0000012341;
   // float fl = -1.012341;
-  float fl = -123.12345;
+  // float fl = -123.12345;
+  float fl = FLT_MIN;
 
   // double eg = 0.;
   // double eg = 1.;
@@ -149,7 +147,20 @@ int main() {
   // double eg = 9.99999998;
   // double eg = 99.999999999999;
   // double eg = 0.00000123456789;
-  double eg = 0.000000000000123456989123456789;
+  // double eg = 0.000000000000123456989123456789;
+  // float eg = -0.12341;
+  // float eg = -0.012341;
+  // float eg = -0.0012341;
+  // float eg = -0.0001234999999999;
+  float eg = -0.000012345;
+  // float eg = -0.0000012341;
+  // float eg = -1.012341;
+  // float eg = -123.12345;
+
+  // long double legf = 0.;
+  long double legf = 1.;
+  // long double legf = 1.18973149535723176502e+4932L;
+  // long double legf = LDBL_MIN;
 
   int s21_count = 0;
   int my_s21_count = 0;
@@ -159,18 +170,11 @@ int main() {
   char B = 'B';
   char str[] = "[str]";
 
-  char s21_input[250];
-  char input[250];
+  char s21_input[6000];
+  char input[6000];
   int test_number = 0;
   int success = 1;
 
-  /*
-  error tests
-  */
-  /*
-  s21_sprintf(s21_input, "1:%d; 2:|%-3d|; 3:|%-+3d|; 4:|% d|", 2247483648, num,
-              num, num);
-   */
   const char *test_0_format =
       "1:%d; 2:|%-3d|; 3:|%-+3d|; 4:|% d|; 5:|% 15d|; 6:|%+15d|; 7:|%015f|";
   const char *test_1_format = "1: %c; 2: |%c|; 3: |%s|; 4: |%s|";
@@ -192,8 +196,8 @@ int main() {
   const char *test_8_format =
       "1:|%.4s|; 2:|%6.5s|; 3:|%.6s|; 4:|%.e|; 5:|%.1e|; 6:|%.0e|; 7:|%e|;";
   const char *test_9_format =
-      "1:|%ld|; 2:|%lld|; 3:|%lo|; 4:|%llo|; 5:|%lu|; 6:|%llu|; 7:|%lx|;; "
-      "7:|%llx|; 7:|%lX|; 8:|%hi|;";
+      "1:|%ld|; 2:|%lld|; 3:|%lo|; 4:|%llo|; 5:|%lu|; 6:|%llu|; 7:|%lx|; "
+      "8:|%llx|; 9:|%lX|; 10:|%hi|; 11:|%Lf|; 12:|%LE|; 13:|%LG|;";
   // test 0
   int s21_co =
       s21_sprintf(s21_input, test_0_format, num, num, num, num, num, num, fl);
@@ -306,10 +310,10 @@ int main() {
   printf("--------------\n");
   // test 9
   s21_co = s21_sprintf(s21_input, test_9_format, lnum, llnum, ul, ull, ul, ull,
-                       ul, ull, ul, hnum);
+                       ul, ull, ul, hnum, legf, legf, legf);
   // printf("s21_input: %s; co: %d\n", s21_input, s21_co);
   co = sprintf(input, test_9_format, lnum, llnum, ul, ull, ul, ull, ul, ull, ul,
-               hnum);
+               hnum, legf, legf, legf);
   // printf("    input: %s; co: %d\n", input, co);
   if (strcmp(s21_input, input) != 0 || co != s21_co) {
     printf("test_number: %d\n", test_number);
